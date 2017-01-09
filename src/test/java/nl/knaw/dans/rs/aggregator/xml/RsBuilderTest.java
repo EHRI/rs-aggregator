@@ -6,6 +6,7 @@ import org.junit.Test;
 
 import javax.xml.bind.JAXBException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
@@ -21,7 +22,7 @@ public class RsBuilderTest {
 
     String sitemapindexXml = rsBuilder.toXml(createSitemapIndex(), true);
     //System.out.println(sitemapindexXml);
-    InputStream sitemapindexIs = IOUtils.toInputStream(sitemapindexXml);
+    InputStream sitemapindexIs = IOUtils.toInputStream(sitemapindexXml, StandardCharsets.UTF_8);
     RsRoot root = rsBuilder.setInputStream(sitemapindexIs).build().get();
     IOUtils.closeQuietly(sitemapindexIs);
 
@@ -33,7 +34,7 @@ public class RsBuilderTest {
     // RsBuilder can be reused
     String urlsetXml = rsBuilder.toXml(createUrlset(), true);
     //System.out.println(urlsetXml);
-    InputStream urlsetIs = IOUtils.toInputStream(urlsetXml);
+    InputStream urlsetIs = IOUtils.toInputStream(urlsetXml, StandardCharsets.UTF_8);
     root = rsBuilder.setInputStream(urlsetIs).build().get();
     IOUtils.closeQuietly(urlsetIs);
 
@@ -47,7 +48,7 @@ public class RsBuilderTest {
   @Test(expected = JAXBException.class)
   public void buildAndFailure() throws Exception {
     String invalidXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"><foo>bar</foo>";
-    InputStream invalidIs = IOUtils.toInputStream(invalidXml);
+    InputStream invalidIs = IOUtils.toInputStream(invalidXml, StandardCharsets.UTF_8);
     RsBuilder rsBuilder = new RsBuilder(new ResourceSyncContext());
     rsBuilder.setInputStream(invalidIs).build();
   }

@@ -9,6 +9,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
@@ -33,7 +34,7 @@ public class UrlsetTest {
     //System.out.println(output1);
 
     Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-    InputStream in = IOUtils.toInputStream(output1);
+    InputStream in = IOUtils.toInputStream(output1, StandardCharsets.UTF_8);
     RsRoot returned = (RsRoot) jaxbUnmarshaller.unmarshal(in);
     IOUtils.closeQuietly(in);
 
@@ -63,7 +64,7 @@ public class UrlsetTest {
     //System.out.println(output1);
 
     Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-    InputStream in = IOUtils.toInputStream(output1);
+    InputStream in = IOUtils.toInputStream(output1, StandardCharsets.UTF_8);
     JAXBElement<RsRoot> je = (JAXBElement<RsRoot>) jaxbUnmarshaller.unmarshal(in);
 
     IOUtils.closeQuietly(in);
