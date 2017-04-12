@@ -1,6 +1,8 @@
 package nl.knaw.dans.rs.aggregator.discover;
 
 
+import nl.knaw.dans.rs.aggregator.http.Result;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;

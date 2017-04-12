@@ -1,4 +1,4 @@
-package nl.knaw.dans.rs.aggregator.discover;
+package nl.knaw.dans.rs.aggregator.http;
 
 
 import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;

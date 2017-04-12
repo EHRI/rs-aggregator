@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
- * Explore a ResourceSync source. ResourceSync documents form a network with 'up' and 'index' links to
+ * Explore a ResourceSync Source. ResourceSync documents form a hierarchical network with 'up' and 'index' links to
  * parent documents and 'url/loc' or 'sitemap/loc' links to child documents.
  * This class enables exploration of, and navigation through such a network.
  *
@@ -42,17 +42,35 @@ public class Expedition {
   private static final String WELL_KNOWN_PATH = "/.well-known/resourcesync";
   private static final String ROBOTS_TXT = "/robots.txt";
 
+  /**
+   * Compose the well-known URI for ResourceSync from a given random URI.
+   * <ul>
+   *  <li>If the given URI ends with <code>/.well-known/resourcesync</code> it will return the given URI.</li>
+   *  <li>Otherwise it will return <code>{server-root}/.well-known/resourcesync</code></li>
+   * </ul>
+   * @param uri a random URI to start with.
+   * @return the well-known URI for ResourceSync for the given URI
+   */
   public static URI createWellKnownUri(URI uri) {
     URI wellKnownUri = uri;
-    if (!uri.getPath().endsWith(WELL_KNOWN_PATH)) {
+    if (uri.getPath() == null || !uri.getPath().endsWith(WELL_KNOWN_PATH)) {
       wellKnownUri = uri.resolve(WELL_KNOWN_PATH);
     }
     return wellKnownUri;
   }
 
+  /**
+   * Compose the robots URI from a given random URI.
+   * <ul>
+   *  <li>If the given URI ends with <code>/robots.txt</code> it will return the given URI.</li>
+   *  <li>Otherwise it will return <code>{server-root}/robots.txt</code></li>
+   * </ul>
+   * @param uri a random URI to start with.
+   * @return the robots URI for the given URI
+   */
   public static URI createRobotsUri(URI uri) {
     URI robotsUri = uri;
-    if (!uri.getPath().endsWith(ROBOTS_TXT)) {
+    if (uri.getPath() == null || !uri.getPath().endsWith(ROBOTS_TXT)) {
       robotsUri = uri.resolve(ROBOTS_TXT);
     }
     return robotsUri;

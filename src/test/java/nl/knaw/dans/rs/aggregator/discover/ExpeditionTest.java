@@ -1,6 +1,7 @@
 package nl.knaw.dans.rs.aggregator.discover;
 
 
+import nl.knaw.dans.rs.aggregator.http.AbstractRemoteTest;
 import nl.knaw.dans.rs.aggregator.xml.Capability;
 import org.junit.Test;
 import org.mockserver.matchers.Times;
@@ -27,7 +28,8 @@ public class ExpeditionTest extends AbstractRemoteTest {
       { "http://foo.com/bar/.well-known/resourcesync", "http://foo.com/bar/.well-known/resourcesync" },
       { "http://foo.com/bar/", "http://foo.com/.well-known/resourcesync" },
       { "http://foo.com/bar", "http://foo.com/.well-known/resourcesync" },
-      { "http://foo.com/bar?this=bla&that=so", "http://foo.com/.well-known/resourcesync" }
+      { "http://foo.com/bar?this=bla&that=so", "http://foo.com/.well-known/resourcesync" },
+      { "info:fedora/easy-dataset:123", "/.well-known/resourcesync"}
     };
 
     for (String[] expect : expectations) {

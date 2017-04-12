@@ -1,6 +1,8 @@
 package nl.knaw.dans.rs.aggregator.discover;
 
 
+import nl.knaw.dans.rs.aggregator.http.AbstractRemoteTest;
+import nl.knaw.dans.rs.aggregator.http.Result;
 import nl.knaw.dans.rs.aggregator.xml.Urlset;
 import org.junit.Test;
 import org.mockserver.matchers.Times;

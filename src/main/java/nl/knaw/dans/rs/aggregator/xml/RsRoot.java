@@ -59,7 +59,7 @@ public abstract class RsRoot<T extends RsRoot, C extends RsItem> {
     try {
       return Optional.of(Capability.forString(rsMd.getCapability().orElse("")));
     } catch (IllegalArgumentException e) {
-      return Optional.ofNullable(null);
+      return Optional.empty();
     }
   }
 

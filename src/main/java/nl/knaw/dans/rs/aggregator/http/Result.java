@@ -1,4 +1,4 @@
-package nl.knaw.dans.rs.aggregator.discover;
+package nl.knaw.dans.rs.aggregator.http;
 
 
 import java.net.URI;
@@ -20,7 +20,7 @@ public class Result<T> implements Consumer<T> {
   private int statusCode;
   private T content;
   private List<Throwable> errors = new ArrayList<>();
-
+  private Map<String, String> headers = new HashMap<>();
   private Map<URI, Result<?>> parents = new HashMap<>();
   private Map<URI, Result<?>> children = new HashMap<>();
   private Set<String> invalidUris = new TreeSet<>();
@@ -47,6 +47,10 @@ public class Result<T> implements Consumer<T> {
 
   public void setStatusCode(int statusCode) {
     this.statusCode = statusCode;
+  }
+
+  public Map<String, String> getHeaders() {
+    return headers;
   }
 
   public Optional<T> getContent() {
@@ -99,14 +103,14 @@ public class Result<T> implements Consumer<T> {
     return copy;
   }
 
-  void addParent(Result<?> parent) {
+  public void addParent(Result<?> parent) {
     if (!parents.containsKey(parent.getUri())) {
       parents.put(parent.getUri(), parent);
       parent.addChild(this);
     }
   }
 
-  void addChild(Result<?> child) {
+  public void addChild(Result<?> child) {
     if (!children.containsKey(child.getUri())) {
       children.put(child.getUri(), child);
       child.addParent(this);

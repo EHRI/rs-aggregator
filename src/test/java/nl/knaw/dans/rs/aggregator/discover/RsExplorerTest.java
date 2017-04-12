@@ -1,5 +1,7 @@
 package nl.knaw.dans.rs.aggregator.discover;
 
+import nl.knaw.dans.rs.aggregator.http.AbstractRemoteTest;
+import nl.knaw.dans.rs.aggregator.http.Result;
 import nl.knaw.dans.rs.aggregator.xml.RsMd;
 import nl.knaw.dans.rs.aggregator.xml.RsRoot;
 import org.junit.Test;
