@@ -22,23 +22,6 @@ import static org.hamcrest.core.IsEqual.equalTo;
 public class ResourceReaderTest extends AbstractRemoteTest {
 
   @Test
-  public void testCreateFilePathFromUri() {
-    String[] expectations = {
-      "http://zandbak2.dans.knaw.nl", "base-dir/nl/knaw/dans/zandbak2",
-      "http://zandbak2.dans.knaw.nl:80", "base-dir/nl/knaw/dans/zandbak2/80",
-      "http://zandbak2.dans.knaw.nl/path/to/file.txt", "base-dir/nl/knaw/dans/zandbak2/path/to/file.txt",
-    };
-
-    for (int i = 0; i < expectations.length; i += 2) {
-      URI uri = URI.create(expectations[i]);
-      String exp = expectations[i+1];
-      File file = ResourceReader.createFilePathFromUri("base-dir", uri);
-      System.out.println(uri.toString() + " > " + file);
-      assertThat(file.toString(), equalTo(exp));
-    }
-  }
-
-  @Test
   public void testRead() throws Exception {
     String path = "/rsserv/nice.txt";
     URI uri = composeUri(path);
@@ -56,15 +39,17 @@ public class ResourceReaderTest extends AbstractRemoteTest {
         .withBody(body)
       );
 
-    ResourceReader rsReader = new ResourceReader(getHttpclient(), "target/test-output");
-    Result<File> result = rsReader.read(uri);
+    ResourceReader rsReader = new ResourceReader(getHttpclient());
+    File file = new File("target/test-output/rsreader/nice.txt");
+    Result<File> result = rsReader.read(uri, file);
 
     assertThat(result.getErrors().isEmpty(), is(true));
     assertThat(result.getStatusCode(), is(200));
     assertThat(result.getContent().isPresent(), is(true));
 
-    File file = result.getContent().get();
+    File file2 = result.getContent().get();
     assertThat(file.exists(), is(true));
+    assertThat(file, equalTo(file2));
   }
 
   @Test
@@ -84,8 +69,9 @@ public class ResourceReaderTest extends AbstractRemoteTest {
         .withBody("Not Found")
       );
 
-    ResourceReader rsReader = new ResourceReader(getHttpclient(), "target/test-output");
-    Result<File> result = rsReader.read(uri);
+    ResourceReader rsReader = new ResourceReader(getHttpclient());
+    File file = new File("target/test-output/rsreader/not_found.txt");
+    Result<File> result = rsReader.read(uri, file);
 
     assertThat(result.getErrors().isEmpty(), is(false));
     assertThat(result.getStatusCode(), is(404));
@@ -108,8 +94,9 @@ public class ResourceReaderTest extends AbstractRemoteTest {
         .withStatusCode(204)
       );
 
-    ResourceReader rsReader = new ResourceReader(getHttpclient(), "target/test-output");
-    Result<File> result = rsReader.read(uri);
+    ResourceReader rsReader = new ResourceReader(getHttpclient());
+    File file = new File("target/test-output/rsreader/no_content.txt");
+    Result<File> result = rsReader.read(uri, file);
 
     assertThat(result.getErrors().isEmpty(), is(true));
     assertThat(result.getStatusCode(), is(204));

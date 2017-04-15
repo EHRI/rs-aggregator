@@ -38,10 +38,11 @@ public class LiveResourceReaderTest {
       "http://zandbak11.dans.knaw.nl/ehri2/mdx/resourcelist_0000.xml"
     };
 
-    ResourceReader rsReader = new ResourceReader(httpclient, "target/test-output");
+    ResourceReader rsReader = new ResourceReader(httpclient);
     rsReader.setKeepingHeaders(true);
     for (String url : urls) {
-      Result<File> result = rsReader.read(url);
+      File file = new File("target/test-output/live/some.xml");
+      Result<File> result = rsReader.read(url, file);
       assertThat(result.getContent().isPresent(), is(true));
       assertThat(result.getContent().get().exists(), is(true));
       result.getHeaders().forEach((key, value) -> System.out.println(key + ": " + value));
