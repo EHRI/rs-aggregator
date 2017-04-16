@@ -12,11 +12,13 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Result<T> implements Consumer<T> {
 
   private URI uri;
   private int ordinal;
+  private String statusLine;
   private int statusCode;
   private T content;
   private List<Throwable> errors = new ArrayList<>();
@@ -31,6 +33,14 @@ public class Result<T> implements Consumer<T> {
 
   public URI getUri() {
     return uri;
+  }
+
+  public String getStatusLine() {
+    return statusLine;
+  }
+
+  public void setStatusLine(String statusLine) {
+    this.statusLine = statusLine;
   }
 
   public int getOrdinal() {
@@ -117,6 +127,22 @@ public class Result<T> implements Consumer<T> {
     }
   }
 
+  @Override
+  public String toString() {
+    return new StringBuilder(super.toString())
+      .append(", uri=").append(uri.toString())
+      .append(", statusLine=").append(getStatusLine())
+      .append(", content=").append(getContent().isPresent() ? getContent().get() : "<empty>")
+      .append(", errors=").append(getErrors().size() > 0 ? getErrors().stream()
+        .map(throwable -> throwable.toString().replaceAll("\n", " * "))
+        .collect(Collectors.joining("; ")) : "<empty>")
+      .append(", parents=").append(getParents().size() > 0 ? getParents().keySet().stream()
+        .map(URI::toString).collect(Collectors.joining("; ")) : "<empty>")
+      .append(", children=").append(getChildren().size() > 0 ? getChildren().keySet().stream()
+        .map(URI::toString).collect(Collectors.joining("; ")) : "<empty>")
+      .append(", invalidUris=").append(getInvalidUris().size() > 0 ? getInvalidUris().stream()
+        .collect(Collectors.joining("; ")) : "<empty>")
+      .toString();
 
-
+  }
 }

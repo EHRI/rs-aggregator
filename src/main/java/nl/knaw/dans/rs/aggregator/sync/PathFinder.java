@@ -16,6 +16,8 @@ public class PathFinder {
   private final int port;
   private final String path;
 
+  private final URI capabilityListUri;
+
   private final File baseDirectory;
   private final File setDirectory;
   private final File metadataDirectory;
@@ -23,6 +25,7 @@ public class PathFinder {
   private final File capabilityListFile;
 
   public PathFinder(String baseDirectory, URI capabilityListUri) {
+    this.capabilityListUri = capabilityListUri;
     File baseDir = new File(baseDirectory);
     this.baseDirectory = baseDir.getAbsoluteFile();
 
@@ -55,6 +58,10 @@ public class PathFinder {
 
   public String getPath() {
     return path;
+  }
+
+  public URI getCapabilityListUri() {
+    return capabilityListUri;
   }
 
   public File getBaseDirectory() {

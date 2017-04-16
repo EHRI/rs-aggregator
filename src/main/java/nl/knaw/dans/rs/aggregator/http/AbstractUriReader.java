@@ -60,6 +60,7 @@ public class AbstractUriReader {
     try  {
       response = httpClient.execute(request);
       int statusCode = response.getStatusLine().getStatusCode();
+      result.setStatusLine(response.getStatusLine().toString());
       logger.debug("Received {} from {}", response.getStatusLine(), uri);
       result.setStatusCode(statusCode);
       if (keepingHeaders) {

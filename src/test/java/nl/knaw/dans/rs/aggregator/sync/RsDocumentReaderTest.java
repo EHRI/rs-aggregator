@@ -44,6 +44,7 @@ public class RsDocumentReaderTest extends AbstractRemoteTest {
 
     assertThat(reader.getLatestUrlset().isPresent(), is(false));
     assertThat(reader.getLatestSitemapindex().isPresent(), is(false));
+//    System.out.println(result);
   }
 
   @Test
@@ -77,6 +78,7 @@ public class RsDocumentReaderTest extends AbstractRemoteTest {
 
 //    RsBuilder rsBuilder = new RsBuilder(getRsContext());
 //    System.out.println(rsBuilder.toXml(document, true));
+//    System.out.println(result);
   }
 
   @Test
@@ -103,6 +105,7 @@ public class RsDocumentReaderTest extends AbstractRemoteTest {
     assertThat(result.getStatusCode(), is(200));
     assertThat(result.getErrors().size(), is(1));
     assertThat(result.getErrors().get(0), instanceOf(javax.xml.bind.UnmarshalException.class));
+//    System.out.println(result);
   }
 
   @Test
