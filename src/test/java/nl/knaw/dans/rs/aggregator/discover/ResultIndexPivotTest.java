@@ -48,6 +48,7 @@ public class ResultIndexPivotTest {
     index.add(result5);
 
     ResultIndexPivot pivot = new ResultIndexPivot(index);
+    UrlSetPivot usPivot = new UrlSetPivot(index);
 
     List<Throwable> errorList = pivot.listErrors();
     assertThat(errorList.stream().map(Throwable::getMessage).collect(Collectors.toList()),
@@ -62,7 +63,7 @@ public class ResultIndexPivotTest {
     assertThat(resultList, containsInAnyOrder(result1, result2, result3, result5));
     assertThat(resultList.size(), equalTo(4));
 
-    List<Result<Urlset>> setResultList = pivot.listUrlsetResults();
+    List<Result<Urlset>> setResultList = usPivot.listUrlsetResults();
     assertThat(setResultList, containsInAnyOrder(result1, result2));
     assertThat(setResultList.size(), equalTo(2));
 
@@ -70,7 +71,7 @@ public class ResultIndexPivotTest {
     assertThat(indexResultList.size(), equalTo(2));
     assertThat(indexResultList, containsInAnyOrder(result3, result5));
 
-    List<Result<Urlset>> capabilityListSetResults = pivot.listUrlsetResults(Capability.CAPABILITYLIST);
+    List<Result<Urlset>> capabilityListSetResults = usPivot.listUrlsetResults(Capability.CAPABILITYLIST);
     assertThat(capabilityListSetResults.size(), equalTo(1));
     assertThat(capabilityListSetResults, containsInAnyOrder(result2));
 
@@ -103,6 +104,7 @@ public class ResultIndexPivotTest {
     capabilityListResults = pivot.listRsRootResultsByLevel(-1);
     //capabilityListResults.stream().forEach(rsRootResult -> System.out.println(rsRootResult.getUri()));
     assertThat(capabilityListResults.size(), equalTo(0));
+
   }
 
 

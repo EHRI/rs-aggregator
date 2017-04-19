@@ -1,5 +1,8 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
+import nl.knaw.dans.rs.aggregator.http.UriRegulator;
+
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -24,16 +27,17 @@ public class PathFinder {
   private final File resourceDirectory;
   private final File capabilityListFile;
 
-  public PathFinder(String baseDirectory, URI capabilityListUri) {
+  public PathFinder(@Nonnull String baseDirectory, @Nonnull URI capabilityListUri) {
     this.capabilityListUri = capabilityListUri;
     File baseDir = new File(baseDirectory);
     this.baseDirectory = baseDir.getAbsoluteFile();
 
-    URI uri2 = normalize(capabilityListUri);
-    host = stripWWW(uri2);
+    URI uri2 = UriRegulator.regulate(capabilityListUri).orElse(null);
+    host = uri2.getHost();
     port = uri2.getPort();
-    path = normalizePath(uri2).getParent();
-    String fileName = normalizePath(uri2).getName();
+    File filePath = new File(uri2.getPath());
+    path = filePath.getParent();
+    String fileName = filePath.getName();
 
     StringBuilder sb = new StringBuilder(this.baseDirectory.getAbsolutePath())
       .append(File.separator)
@@ -84,7 +88,7 @@ public class PathFinder {
     return capabilityListFile;
   }
 
-  public File getMetadataFilePath(URI uri) {
+  public File getMetadataFilePath(@Nonnull URI uri) {
     String restPath = extractPath(uri).replace(path, "");
     return new File(metadataDirectory, restPath);
   }
@@ -93,30 +97,17 @@ public class PathFinder {
     return new File(resourceDirectory, extractPath(uri));
   }
 
-  private String extractPath(URI uri) {
-    URI otherUri = normalize(uri);
-    String otherHost = stripWWW(otherUri);
+  private String extractPath(@Nonnull URI uri) {
+    URI otherUri = UriRegulator.regulate(uri).orElse(null);
+    String otherHost = otherUri.getHost();
     int otherPort = otherUri.getPort();
     if (!host.equals(otherHost)) {
       throw new IllegalArgumentException("Normalized host names unequal. this host:" + host + " other: " + otherHost);
     } else if (port != otherPort) {
       throw new IllegalArgumentException("Ports unequal. this port:" + port + " other: " + otherPort);
     }
-    return normalizePath(otherUri).getPath();
+    return otherUri.getPath();
   }
 
-  public static URI normalize(URI uri) {
-    URI uri2 = uri.normalize();
-    uri2 = URI.create(uri2.toString().toLowerCase());
-    return uri2;
-  }
-
-  public static String stripWWW(URI uri) {
-    return uri.getHost().replaceAll("^www.", "");
-  }
-
-  public static File normalizePath(URI uri) {
-    return new File(uri.getPath().replaceAll("[//]", "/"));
-  }
 
 }

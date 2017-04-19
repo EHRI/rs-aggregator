@@ -59,7 +59,7 @@ public class LiveExpeditionTest {
       System.out.println("children: " + result.getChildren().size() + " parents: " + result.getParents().size());
 
     }
-    ResultIndexPivot pivot = new ResultIndexPivot((index));
+    UrlSetPivot pivot = new UrlSetPivot((index));
     pivot.listUrlsetResults()
       .forEach(urlsetResult -> System.out.println(urlsetResult.getUri()));
   }

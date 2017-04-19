@@ -68,12 +68,12 @@ public class LinkExplorerTest extends AbstractRemoteTest {
     assertThat(index.contains(uri), is(true));
     assertThat(result.getChildren().keySet(), containsInAnyOrder(
       composeUri("/foo/bar/dataset1/capabilitylist.xml"),
-      URI.create("http://www.example.com/dataset2/capabilitylist.xml")));
+      URI.create("http://example.com/dataset2/capabilitylist.xml")));
 
     Result<?> child1 = result.getChildren().get(composeUri(capabilityListPath));
     assertThat(child1.getParents().containsKey(result.getUri()), is(true));
 
-    Result<?> child2 = result.getChildren().get(URI.create("http://www.example.com/dataset2/capabilitylist.xml"));
+    Result<?> child2 = result.getChildren().get(URI.create("http://example.com/dataset2/capabilitylist.xml"));
     assertThat(child2.getParents().containsKey(result.getUri()), is(true));
 
     assertThat(child1.getErrors().isEmpty(), is(true));

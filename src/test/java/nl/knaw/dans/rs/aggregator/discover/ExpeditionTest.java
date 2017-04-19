@@ -72,7 +72,7 @@ public class ExpeditionTest extends AbstractRemoteTest {
     // uri's http://localhost:xxxxx/rsserv will be merged
     setUpServer(path);
     ResultIndex index = expedition.exploreAndMerge(url);
-    ResultIndexPivot pivot = new ResultIndexPivot((index));
+    UrlSetPivot pivot = new UrlSetPivot((index));
 
     int resultCount = index.getResultMap().size();
     assertThat(resultCount, equalTo(14)); // 15 > 14, merged http://localhost:xxxxxx/rsserv
@@ -98,7 +98,7 @@ public class ExpeditionTest extends AbstractRemoteTest {
     String url = composePath(path);
     Expedition expedition = new Expedition(getHttpclient(), getRsContext());
     ResultIndex index = expedition.exploreAndMerge(url);
-    ResultIndexPivot pivot = new ResultIndexPivot((index));
+    UrlSetPivot pivot = new UrlSetPivot((index));
     List<String> locs = pivot.listUrlLocations(Capability.CAPABILITYLIST);
 
     String[] expectedLocs = new String[] {

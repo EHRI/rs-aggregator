@@ -27,9 +27,34 @@ public class RsExplorer extends AbstractUriExplorer {
 
   private final ResourceSyncContext rsContext;
 
+  public boolean followParentLinks = true;
+  public boolean followIndexLinks = true;
+  public boolean followChildLinks = true;
+
   public RsExplorer(CloseableHttpClient httpClient, ResourceSyncContext rsContext) {
     super(httpClient);
     this.rsContext = rsContext;
+  }
+
+  public RsExplorer withFollowParentLinks(boolean follow) {
+    followParentLinks = follow;
+    return this;
+  }
+
+  public RsExplorer withFollowIndexLinks(boolean follow) {
+    followIndexLinks = follow;
+    return this;
+  }
+
+  public RsExplorer withFollowChildLinks(boolean follow) {
+    followChildLinks = follow;
+    return this;
+  }
+
+  public ResultIndex explore(URI uri) {
+    ResultIndex index = new ResultIndex();
+    explore(uri, index);
+    return index;
   }
 
   @SuppressWarnings ("unchecked")
@@ -39,58 +64,64 @@ public class RsExplorer extends AbstractUriExplorer {
     index.add(result);
     Capability capability = extractCapability(result);
 
-    // rs:ln rel="up" -> points to parent document, a urlset.
-    String parentLink = result.getContent().map(rsRoot -> rsRoot.getLink("up")).orElse(null);
-    if (parentLink != null && !index.contains(parentLink)) {
-      try {
-        URI parentUri = new URI(parentLink);
-        Result<RsRoot> parentResult = explore(parentUri, index);
-        result.addParent(parentResult);
-        verifyUpRelation(result, parentResult, capability);
-      } catch (URISyntaxException e) {
-        index.addInvalidUri(parentLink);
-        result.addError(e);
-        result.addInvalidUri(parentLink);
+    if (followParentLinks) {
+      // rs:ln rel="up" -> points to parent document, a urlset.
+      String parentLink = result.getContent().map(rsRoot -> rsRoot.getLink("up")).orElse(null);
+      if (parentLink != null && !index.contains(parentLink)) {
+        try {
+          URI parentUri = new URI(parentLink);
+          Result<RsRoot> parentResult = explore(parentUri, index);
+          result.addParent(parentResult);
+          verifyUpRelation(result, parentResult, capability);
+        } catch (URISyntaxException e) {
+          index.addInvalidUri(parentLink);
+          result.addError(e);
+          result.addInvalidUri(parentLink);
+        }
       }
     }
 
-    // rs:ln rel="index" -> points to parent index, a sitemapindex.
-    String indexLink = result.getContent().map(rsRoot -> rsRoot.getLink("index")).orElse(null);
-    if (indexLink != null && !index.contains(indexLink)) {
-      try {
-        URI indexUri = new URI(indexLink);
-        Result<RsRoot> indexResult = explore(indexUri, index);
-        result.addParent(indexResult);
-        verifyIndexRelation(result, indexResult, capability);
-      } catch (URISyntaxException e) {
-        index.addInvalidUri(indexLink);
-        result.addError(e);
-        result.addInvalidUri(indexLink);
+    if (followIndexLinks) {
+      // rs:ln rel="index" -> points to parent index, a sitemapindex.
+      String indexLink = result.getContent().map(rsRoot -> rsRoot.getLink("index")).orElse(null);
+      if (indexLink != null && !index.contains(indexLink)) {
+        try {
+          URI indexUri = new URI(indexLink);
+          Result<RsRoot> indexResult = explore(indexUri, index);
+          result.addParent(indexResult);
+          verifyIndexRelation(result, indexResult, capability);
+        } catch (URISyntaxException e) {
+          index.addInvalidUri(indexLink);
+          result.addError(e);
+          result.addInvalidUri(indexLink);
+        }
       }
     }
 
-    // elements <url> or <sitemap> have the location of the children of result.
-    // children of Urlset with capability resourcelist, resourcedump, changelist, changedump
-    // are the resources them selves. do not explore these with this explorer.
-    String xmlString = result.getContent()
-      .map(RsRoot::getMetadata).flatMap(RsMd::getCapability).orElse("invalid");
+    if (followChildLinks) {
+      // elements <url> or <sitemap> have the location of the children of result.
+      // children of Urlset with capability resourcelist, resourcedump, changelist, changedump
+      // are the resources them selves. do not explore these with this explorer.
+      String xmlString = result.getContent()
+        .map(RsRoot::getMetadata).flatMap(RsMd::getCapability).orElse("invalid");
 
-    boolean isSitemapindex = result.getContent().map(rsRoot -> rsRoot instanceof Sitemapindex).orElse(false);
+      boolean isSitemapindex = result.getContent().map(rsRoot -> rsRoot instanceof Sitemapindex).orElse(false);
 
-    if (Capability.levelfor(xmlString) > Capability.RESOURCELIST.level || isSitemapindex) {
-      List<RsItem> itemList = result.getContent().map(RsRoot::getItemList).orElse(Collections.emptyList());
-      for (RsItem item : itemList) {
-        String childLink = item.getLoc();
-        if (childLink != null && !index.contains(childLink)) {
-          try {
-            URI childUri = new URI(childLink);
-            Result<RsRoot> childResult = explore(childUri, index);
-            result.addChild(childResult);
-            verifyChildRelation(result, childResult, capability);
-          } catch (URISyntaxException e) {
-            index.addInvalidUri(childLink);
-            result.addError(e);
-            result.addInvalidUri(childLink);
+      if (Capability.levelfor(xmlString) > Capability.RESOURCELIST.level || isSitemapindex) {
+        List<RsItem> itemList = result.getContent().map(RsRoot::getItemList).orElse(Collections.emptyList());
+        for (RsItem item : itemList) {
+          String childLink = item.getLoc();
+          if (childLink != null && !index.contains(childLink)) {
+            try {
+              URI childUri = new URI(childLink);
+              Result<RsRoot> childResult = explore(childUri, index);
+              result.addChild(childResult);
+              verifyChildRelation(result, childResult, capability);
+            } catch (URISyntaxException e) {
+              index.addInvalidUri(childLink);
+              result.addError(e);
+              result.addInvalidUri(childLink);
+            }
           }
         }
       }

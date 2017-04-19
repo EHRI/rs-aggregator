@@ -20,6 +20,7 @@ public class RsMd {
   @XmlAttribute() private ZonedDateTime completed;
   @XmlAttribute() private ZonedDateTime from;
   @XmlAttribute() private ZonedDateTime until;
+  @XmlAttribute() private ZonedDateTime datetime;
 
   @XmlAttribute() private String change;
   @XmlAttribute() private String encoding;
@@ -76,6 +77,15 @@ public class RsMd {
 
   public RsMd withUntil(ZonedDateTime until) {
     this.until = until;
+    return this;
+  }
+
+  public Optional<ZonedDateTime> getDateTime() {
+    return Optional.ofNullable(datetime);
+  }
+
+  public RsMd withDateTime(ZonedDateTime dateTime) {
+    this.datetime = dateTime;
     return this;
   }
 

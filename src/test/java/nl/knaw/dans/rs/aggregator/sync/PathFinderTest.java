@@ -35,7 +35,7 @@ public class PathFinderTest {
       "http://zandbak02.dans.knaw.nl:8080/foo/bar/text.txt"
     };
 
-    String baseDir = "target/test-output/pathmaster";
+    String baseDir = "target/test-output/pathfinder";
     if (new File(baseDir).exists()) {
       Path rootPath = Paths.get(baseDir);
       Files.walk(rootPath, FileVisitOption.FOLLOW_LINKS)

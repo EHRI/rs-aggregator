@@ -1,6 +1,7 @@
 package nl.knaw.dans.rs.aggregator.http;
 
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,7 +15,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class Result<T> implements Consumer<T> {
+public class Result<T> implements Consumer<T>, Comparable<Result> {
 
   private URI uri;
   private int ordinal;
@@ -28,7 +29,7 @@ public class Result<T> implements Consumer<T> {
   private Set<String> invalidUris = new TreeSet<>();
 
   public Result(URI uri) {
-    this.uri = uri;
+    this.uri = uri == null ? null : UriRegulator.regulate(uri).orElse(null);
   }
 
   public URI getUri() {
@@ -144,5 +145,20 @@ public class Result<T> implements Consumer<T> {
         .collect(Collectors.joining("; ")) : "<empty>")
       .toString();
 
+  }
+
+  @Override
+  public int compareTo(@Nullable Result o) {
+    if (o == null) {
+      return -1;
+    } else if (uri == null && o.uri == null) {
+      return 0;
+    } else if (o.uri == null) {
+      return -1;
+    } else if (uri == null) {
+      return 1;
+    } else {
+      return uri.compareTo(o.uri);
+    }
   }
 }
