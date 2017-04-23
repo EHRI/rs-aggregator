@@ -88,12 +88,12 @@ public class PathFinder {
     return capabilityListFile;
   }
 
-  public File getMetadataFilePath(@Nonnull URI uri) {
+  public File findMetadataFilePath(@Nonnull URI uri) {
     String restPath = extractPath(uri).replace(path, "");
     return new File(metadataDirectory, restPath);
   }
 
-  public File getResourceFilePath(URI uri) {
+  public File findResourceFilePath(URI uri) {
     return new File(resourceDirectory, extractPath(uri));
   }
 

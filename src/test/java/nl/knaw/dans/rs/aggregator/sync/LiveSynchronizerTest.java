@@ -19,6 +19,7 @@ public class LiveSynchronizerTest {
 
   private static String baseDirectory = "target/test-output/synchronizer";
   private static String capabilityListUrl = "http://zandbak11.dans.knaw.nl/ehri2/mdx/capabilitylist.xml";
+  //private static  String capabilityListUrl = "http://publisher-connector.core.ac.uk/resourcesync/sitemaps/elsevier/pdf/capabilitylist.xml";
 
   @BeforeClass
   public static void initialize() throws Exception {
@@ -31,17 +32,17 @@ public class LiveSynchronizerTest {
     Synchronizer synchronizer = new Synchronizer(pathFinder);
     synchronizer.synchronize();
 
-    System.out.println("\nRESOURCE ITEMS");
-    synchronizer.getResourceItems().keySet().forEach(System.out::println);
-    System.out.println("\nCREATED ITEMS");
-    synchronizer.getCreatedItems().keySet().forEach(System.out::println);
-    System.out.println("\nUPDATED ITEMS");
-    synchronizer.getUpdatedItems().keySet().forEach(System.out::println);
-    System.out.println("\nDELETED ITEMS");
-    synchronizer.getDeletedItems().keySet().forEach(System.out::println);
-    System.out.println();
-    System.out.println(synchronizer.getUltimateResourceListAt());
-    System.out.println(synchronizer.getUltimateChangeListFrom());
+//    System.out.println("\nRESOURCE ITEMS " + synchronizer.getResourceItems().size());
+//    //synchronizer.getResourceItems().keySet().forEach(System.out::println);
+//    System.out.println("\nCREATED ITEMS");
+//    synchronizer.getCreatedItems().keySet().forEach(System.out::println);
+//    System.out.println("\nUPDATED ITEMS");
+//    synchronizer.getUpdatedItems().keySet().forEach(System.out::println);
+//    System.out.println("\nDELETED ITEMS");
+//    synchronizer.getDeletedItems().keySet().forEach(System.out::println);
+//    System.out.println();
+//    System.out.println(synchronizer.getUltimateResourceListAt());
+//    System.out.println(synchronizer.getUltimateChangeListFrom());
 
   }
 }

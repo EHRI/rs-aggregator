@@ -63,12 +63,12 @@ public class PathFinderTest {
       System.out.println(pm.getCapabilityListFile());
 
       URI mdUri = URI.create(expectations[i + 1]);
-      System.out.println(pm.getMetadataFilePath(mdUri));
+      System.out.println(pm.findMetadataFilePath(mdUri));
 
       URI rsUri = URI.create(expectations[i + 2]);
-      System.out.println(pm.getResourceFilePath(rsUri));
+      System.out.println(pm.findResourceFilePath(rsUri));
 
-      assertThat(pm.getCapabilityListFile(), equalTo(pm.getMetadataFilePath(capaUri)));
+      assertThat(pm.getCapabilityListFile(), equalTo(pm.findMetadataFilePath(capaUri)));
 
       System.out.println();
 
