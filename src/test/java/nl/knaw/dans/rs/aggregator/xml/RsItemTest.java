@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -13,7 +14,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 /**
  * Created on 2017-04-20 16:18.
  */
-public class RsMdTest {
+public class RsItemTest {
 
   @Test
   public void testIsAfterDatTime() {
@@ -50,5 +51,16 @@ public class RsMdTest {
     latest = item2.latest(item1);
     assertThat(latest, equalTo(item1));
 
+  }
+
+  @Test
+  public void maybeHash() {
+    UrlItem item = new UrlItem("location1");
+    Optional<String> maybeHash = item.getMetadata().flatMap(RsMd::getHash);
+    assertThat(maybeHash.isPresent(), is(false));
+    item.withMetadata(new RsMd().withHash("HasHhasH"));
+    maybeHash = item.getMetadata().flatMap(RsMd::getHash);
+    assertThat(maybeHash.isPresent(), is(true));
+    assertThat(maybeHash.get(), equalTo("HasHhasH"));
   }
 }

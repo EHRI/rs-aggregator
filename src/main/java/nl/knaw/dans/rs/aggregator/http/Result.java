@@ -76,6 +76,14 @@ public class Result<T> implements Consumer<T>, Comparable<Result> {
     errors.add(error);
   }
 
+  public Throwable lastError() {
+    if (errors.isEmpty()) {
+      return null;
+    } else {
+      return errors.get(errors.size() - 1);
+    }
+  }
+
   public Set<String> getInvalidUris() {
     return invalidUris;
   }

@@ -10,6 +10,7 @@ import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;
 import nl.knaw.dans.rs.aggregator.xml.RsMd;
 import nl.knaw.dans.rs.aggregator.xml.UrlItem;
 import nl.knaw.dans.rs.aggregator.xml.Urlset;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
@@ -17,9 +18,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URI;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -31,6 +38,7 @@ public class Synchronizer {
 
   private final static Logger logger = LoggerFactory.getLogger(Synchronizer.class);
 
+  private static final int MAX_DOWNLOAD_RETRY = 3;
   private static final String NULL_DATE = "2000-01-01T00:00:00.000Z";
   private static final String CH_CREATED = "created";
   private static final String CH_UPDATED = "updated";
@@ -41,8 +49,10 @@ public class Synchronizer {
 
   private Reporter reporter;
   private RsDocumentReader rsDocReader;
+  private ResourceReader resourceReader;
   private CloseableHttpClient httpClient;
   private ResourceSyncContext rsContext;
+  private VerificationPolicy verificationPolicy;
   private boolean trialRun = false;
 
   private Map<URI, UrlItem> resourceItems;
@@ -66,6 +76,30 @@ public class Synchronizer {
 
   public Synchronizer withRsDocReader(RsDocumentReader rsDocReader) {
     this.rsDocReader = rsDocReader;
+    return this;
+  }
+
+  public ResourceReader getResourceReader() {
+    if (resourceReader == null) {
+      resourceReader = new ResourceReader(getHttpClient());
+    }
+    return resourceReader;
+  }
+
+  public VerificationPolicy getVerificationPolicy() {
+    if (verificationPolicy == null) {
+      verificationPolicy = new DefaultVerificationPolicy();
+    }
+    return verificationPolicy;
+  }
+
+  public Synchronizer withVerificationPolicy(VerificationPolicy verificationPolicy) {
+    this.verificationPolicy = verificationPolicy;
+    return this;
+  }
+
+  public Synchronizer withResourceReader(ResourceReader resourceReader) {
+    this.resourceReader = resourceReader;
     return this;
   }
 
@@ -277,16 +311,16 @@ public class Synchronizer {
     File resourcePath = pathFinder.findResourceFilePath(locUri);
     if (resourcePath.exists()) {
       if (CH_DELETED.equals(state)) {
-        // remove resource
-        logger.debug("{} Removing {}", state, locUri);
+        logger.debug("State={}. Removing {}", state, locUri);
+        remove(locUri, item, resourcePath);
       } else {
-        // verify hash last mod, length, if neither download
-        logger.debug("{} Verifying {}", state, locUri);
+        logger.debug("State={}. Verifying {}", state, locUri);
+        verify(locUri, item, resourcePath, 0);
       }
     } else { // resource does not exist
       if (!CH_DELETED.equals(state)) {
-        // download
-        logger.debug("{} Downloading {}", state, locUri);
+        logger.debug("State={}. Downloading {}", state, locUri);
+        download(locUri, item, resourcePath, 0);
       }
     }
   }
@@ -297,6 +331,134 @@ public class Synchronizer {
     if (!CH_UPDATED.equals(change)) uri2 = uri2.latest(updatedItems.remove(uri));
     uri2 = uri2.latest(deletedItems.remove(uri));
     return uri2;
+  }
+
+  private void download(URI locUri, UrlItem item, File resourcePath, int downloadCounter) {
+    if (++downloadCounter > MAX_DOWNLOAD_RETRY) {
+      logger.warn("Giving up on download: {}", locUri);
+      return;
+    }
+    Result<File> result = getResourceReader().read(locUri, resourcePath);
+    if (result.getContent().isPresent()) {
+      verify(locUri, item, resourcePath, downloadCounter);
+    } else {
+      logger.warn("Failed download: ", result.lastError());
+    }
+  }
+
+  private void verify(URI locUri, UrlItem item, File resourcePath, int downloadCounter) {
+    VerificationPolicy policy = getVerificationPolicy();
+    VerificationStatus stHash = VerificationStatus.not_verified;
+    VerificationStatus stLastMod = VerificationStatus.not_verified;
+    VerificationStatus stLength = VerificationStatus.not_verified;
+
+    if (policy.continueVerification(stHash, stLastMod, stLength)) {
+      Optional<String> maybeHash = item.getMetadata().flatMap(RsMd::getHash);
+      if (maybeHash.isPresent()) {
+        stHash = verifyHash(resourcePath, maybeHash.get(), locUri);
+      }
+    }
+
+    if (policy.continueVerification(stHash, stLastMod, stLength)) {
+      Optional<ZonedDateTime> maybeLastModified = item.getLastmod();
+      if (maybeLastModified.isPresent()) {
+        stLastMod = verifyLastMod(resourcePath, maybeLastModified.get(), locUri);
+      }
+    }
+
+    if (policy.continueVerification(stHash, stLastMod, stLength)) {
+      Optional<Long> maybeSize = item.getMetadata().flatMap(RsMd::getLength);
+      if (maybeSize.isPresent()) {
+        stLength = verifyLength(resourcePath, maybeSize.get(), locUri);
+      }
+    }
+
+    if (policy.repeatDownload(stHash, stLastMod, stLength, downloadCounter)) {
+      logger.info("Repeating download. stHash={}, stLastMod={}, stLength={}", stHash, stLastMod, stLength);
+      download(locUri, item, resourcePath, downloadCounter);
+    }
+  }
+
+  private VerificationStatus verifyHash(File resourcePath, String hash, URI locUri) {
+    VerificationStatus status = VerificationStatus.not_verified;
+    String algorithm = "md5";
+    String remoteHash = hash;
+    String localHash = null;
+    String[] splitHash = hash.split(":");
+    if (splitHash.length > 1) {
+      algorithm = splitHash[0];
+      remoteHash = splitHash[1];
+    }
+    FileInputStream fis = null;
+    try {
+      MessageDigest digest = MessageDigest.getInstance(algorithm);
+      fis = new FileInputStream(resourcePath);
+      byte[] byteArray = new byte[1024];
+      int bytesCount = 0;
+      while ((bytesCount = fis.read(byteArray)) != -1) {
+        digest.update(byteArray, 0, bytesCount);
+      };
+      byte[] bytes = digest.digest();
+      StringBuilder sb = new StringBuilder();
+      for (byte aByte : bytes) {
+        sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
+      }
+      localHash = sb.toString();
+      if (remoteHash.equalsIgnoreCase(localHash)) {
+        status = VerificationStatus.verification_success;
+        logger.debug("Verified {} hash of {}", algorithm, locUri);
+      } else {
+        status = VerificationStatus.verification_failure;
+        logger.warn("Hash failure. algorithm={}, remote={}, local={}, uri={}", algorithm, remoteHash, localHash, locUri);
+      }
+    } catch (NoSuchAlgorithmException e) {
+      logger.warn("No such algorithm for hash: '{}'. Found on {}", algorithm, locUri, e);
+      status = VerificationStatus.verification_error;
+    } catch (FileNotFoundException e) {
+      logger.warn("While verifying hash on {}: ", locUri, e);
+      status = VerificationStatus.verification_error;
+    } catch (IOException e) {
+      logger.warn("While verifying hash on {}", locUri, e);
+      status = VerificationStatus.verification_error;
+    } finally {
+      IOUtils.closeQuietly(fis);
+    }
+    return status;
+  }
+
+  private VerificationStatus verifyLastMod(File resourcePath, ZonedDateTime zdt, URI locUri) {
+    // FYI: if remote renames a directory, the files in that directory may get different timestamps,
+    // even though the files did not change.
+    VerificationStatus status = VerificationStatus.not_verified;
+    long remoteLastMod = Date.from(zdt.toInstant()).getTime();
+    long localLastMod = resourcePath.lastModified();
+    if (remoteLastMod == localLastMod) {
+      status = VerificationStatus.verification_success;
+      logger.debug("Verified Last-modified of {}", locUri);
+    } else {
+      status = VerificationStatus.verification_failure;
+      logger.warn("Last-modified not equal. remote={} ({}), local={} ({}), uri={}",
+        remoteLastMod, new Date(remoteLastMod),
+        localLastMod, new Date(localLastMod), locUri);
+    }
+    return status;
+  }
+
+  private VerificationStatus verifyLength(File resourcePath, Long remoteSize, URI locUri) {
+    VerificationStatus status = VerificationStatus.not_verified;
+    long localSize = resourcePath.length();
+    if (remoteSize == localSize) {
+      status = VerificationStatus.verification_success;
+      logger.debug("Verified Length of {}", locUri);
+    } else {
+      status = VerificationStatus.verification_failure;
+      logger.warn("Length not equal. remote={}, local={}, uri={}", remoteSize, localSize, locUri);
+    }
+    return status;
+  }
+
+  private void remove(URI locUri, UrlItem item, File resourcePath) {
+
   }
 
 }
