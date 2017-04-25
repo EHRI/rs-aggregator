@@ -12,8 +12,8 @@ import java.net.URISyntaxException;
  */
 public class PathFinder {
 
-  public static final String DIR_METADATA = "metadata";
-  public static final String DIR_RESOURCES = "resources";
+  public static final String DIR_METADATA = "__MD__";
+  public static final String DIR_RESOURCES = "__RS__";
 
   private final String host;
   private final int port;

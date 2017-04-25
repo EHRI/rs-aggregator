@@ -15,8 +15,10 @@ public class DefaultVerificationPolicy implements VerificationPolicy {
 
   @Override
   public boolean repeatDownload(VerificationStatus stHash, VerificationStatus stLastMod, VerificationStatus stSize,
-                                int downloadCounter) {
-    if (stHash == verification_success) {
+                                int downloadCounter, boolean resourceExists) {
+    if (!resourceExists) {
+      return true;
+    } else if (stHash == verification_success) {
       return false;
     } else if (stLastMod == verification_success && stSize == verification_success) {
       return false;
@@ -25,5 +27,14 @@ public class DefaultVerificationPolicy implements VerificationPolicy {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public boolean isVerified(VerificationStatus stHash, VerificationStatus stLastMod, VerificationStatus stSize, boolean resourceExists) {
+    if (stHash == verification_success || (stLastMod == verification_success && stSize == verification_success)) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

@@ -6,9 +6,13 @@ package nl.knaw.dans.rs.aggregator.sync;
  */
 public interface VerificationPolicy {
 
-  boolean continueVerification(VerificationStatus hash, VerificationStatus lastMod, VerificationStatus file_length);
+  boolean continueVerification(VerificationStatus stHash, VerificationStatus stLastMod, VerificationStatus stSize);
 
-  boolean repeatDownload(VerificationStatus hash, VerificationStatus lastMod, VerificationStatus file_length, int downloadCounter);
+  boolean repeatDownload(VerificationStatus stHash, VerificationStatus stLastMod, VerificationStatus stSize,
+                         int downloadCount, boolean resourceExists);
+
+  boolean isVerified(VerificationStatus stHash, VerificationStatus stLastMod, VerificationStatus stSize,
+                     boolean resourceExists);
 
 
 }

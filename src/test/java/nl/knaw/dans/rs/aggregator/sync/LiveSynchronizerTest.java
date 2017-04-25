@@ -20,6 +20,7 @@ public class LiveSynchronizerTest {
   private static String baseDirectory = "target/test-output/synchronizer";
   private static String capabilityListUrl = "http://zandbak11.dans.knaw.nl/ehri2/mdx/capabilitylist.xml";
   //private static  String capabilityListUrl = "http://publisher-connector.core.ac.uk/resourcesync/sitemaps/elsevier/pdf/capabilitylist.xml";
+  //private static String capabilityListUrl = "http://publisher-connector.core.ac.uk/resourcesync/sitemaps/elsevier/metadata/capabilitylist.xml";
 
   @BeforeClass
   public static void initialize() throws Exception {
@@ -30,7 +31,8 @@ public class LiveSynchronizerTest {
   public void testSynchronize() throws Exception {
     PathFinder pathFinder = new PathFinder(baseDirectory, URI.create(capabilityListUrl));
     Synchronizer synchronizer = new Synchronizer(pathFinder);
-    synchronizer.synchronize();
+    synchronizer.setTrialRun(false);
+    synchronizer.withMaxDownloadRetry(3).synchronize();
 
 //    System.out.println("\nRESOURCE ITEMS " + synchronizer.getResourceItems().size());
 //    //synchronizer.getResourceItems().keySet().forEach(System.out::println);

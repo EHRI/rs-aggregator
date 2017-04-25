@@ -11,11 +11,11 @@ import java.util.Optional;
  */
 public class UriRegulator {
 
-  public static URI normalize(@Nonnull URI uri) {
-    URI uri2 = uri.normalize();
-    uri2 = URI.create(uri2.toString().toLowerCase());
-    return uri2;
-  }
+//  public static URI normalize(@Nonnull URI uri) {
+//    URI uri2 = uri.normalize();
+//    uri2 = URI.create(uri2.toString().toLowerCase());
+//    return uri2;
+//  }
 
   public static String stripWWW(@Nonnull URI uri) {
     String host = uri.getHost();
@@ -48,8 +48,9 @@ public class UriRegulator {
   }
 
   public static Optional<URI> regulate(@Nonnull URI uri) {
-    URI n = normalize(uri);
+    URI n = uri.normalize();
     String host = stripWWW(n);
+    host = host == null ? null : host.toLowerCase();
     String path = normalizePath(n).getPath();
     try {
       if (n.isOpaque()) {

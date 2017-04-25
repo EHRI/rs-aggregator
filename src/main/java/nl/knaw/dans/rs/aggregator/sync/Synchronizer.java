@@ -38,6 +38,7 @@ public class Synchronizer {
 
   private final static Logger logger = LoggerFactory.getLogger(Synchronizer.class);
 
+  private static final int MAX_DOWNLOADS = Integer.MAX_VALUE;
   private static final int MAX_DOWNLOAD_RETRY = 3;
   private static final String NULL_DATE = "2000-01-01T00:00:00.000Z";
   private static final String CH_CREATED = "created";
@@ -53,6 +54,8 @@ public class Synchronizer {
   private CloseableHttpClient httpClient;
   private ResourceSyncContext rsContext;
   private VerificationPolicy verificationPolicy;
+  private int maxDownloads = MAX_DOWNLOADS;
+  private int maxDownloadRetry = MAX_DOWNLOAD_RETRY;
   private boolean trialRun = false;
 
   private Map<URI, UrlItem> resourceItems;
@@ -61,6 +64,14 @@ public class Synchronizer {
   private Map<URI, UrlItem> deletedItems;
   private ZonedDateTime ultimateResourceListAt;
   private ZonedDateTime ultimateChangeListFrom;
+  private int itemCount;
+  private int itemsRemoved;
+  private int itemsDownloaded;
+  private int itemsVerified;
+  private int itemsNoAction; // change='deleted' and resource does not exists.
+  private int failedRemoves;
+  private int failedDownloads;
+  private int failedVerifications;
 
   public Synchronizer(PathFinder pathFinder) {
     this.pathFinder = pathFinder;
@@ -143,6 +154,25 @@ public class Synchronizer {
     return this;
   }
 
+  public int getMaxDownloads() {
+    return maxDownloads;
+  }
+
+  public Synchronizer withMaxDownloads(int maxDownloads) {
+    this.maxDownloads = maxDownloads;
+    return this;
+  }
+
+  public int getMaxDownloadRetry() {
+    return maxDownloadRetry;
+  }
+
+  public Synchronizer withMaxDownloadRetry(int maxDownloadRetry) {
+
+    this.maxDownloadRetry = maxDownloadRetry;
+    return this;
+  }
+
   public boolean isTrialRun() {
     return trialRun;
   }
@@ -189,6 +219,15 @@ public class Synchronizer {
 
     ultimateResourceListAt = ZonedDateTime.parse(NULL_DATE).withZoneSameInstant(ZoneOffset.UTC);
     ultimateChangeListFrom = ZonedDateTime.parse(NULL_DATE).withZoneSameInstant(ZoneOffset.UTC);
+
+    itemCount = 0;
+    itemsDownloaded = 0;
+    itemsVerified = 0;
+    itemsRemoved = 0;
+    itemsNoAction = 0;
+    failedDownloads = 0;
+    failedVerifications = 0;
+    failedRemoves = 0;
   }
 
   /**
@@ -292,6 +331,7 @@ public class Synchronizer {
   }
 
   private void syncLocalResources() {
+    itemCount = 0;
     for (Map.Entry<URI, UrlItem> entry : resourceItems.entrySet()) {
       updateItem(entry.getKey(), entry.getValue(), CH_REMAIN);
     }
@@ -303,24 +343,50 @@ public class Synchronizer {
     for (Map.Entry<URI, UrlItem> entry : createdItems.entrySet()) {
       updateItem(entry.getKey(), entry.getValue(), CH_CREATED);
     }
+    int failures = failedDownloads + failedRemoves + failedVerifications;
+    logger.info("====> items={}, failures={} [success/failures] newly downloaded={}/{}, verified={}/{}, removed={}/{}, " +
+        "no_action={}, trial run={}, resource set={}",
+      itemCount, failures, itemsDownloaded, failedDownloads, itemsVerified, failedVerifications,
+      itemsRemoved, failedRemoves, itemsNoAction, trialRun, pathFinder.getCapabilityListUri());
   }
 
   private void updateItem(URI locUri, UrlItem item, String change) {
+    itemCount++;
     UrlItem latestItem = latest(locUri, item, change);
     String state = latestItem.getMetadata().flatMap(RsMd::getChange).orElse(CH_REMAIN);
     File resourcePath = pathFinder.findResourceFilePath(locUri);
+    // existing resources
     if (resourcePath.exists()) {
       if (CH_DELETED.equals(state)) {
-        logger.debug("State={}. Removing {}", state, locUri);
-        remove(locUri, item, resourcePath);
+        logger.debug("------> {} State={}. Removing {}", itemCount, state, locUri);
+        boolean removed = remove(locUri, latestItem, resourcePath);
+        if (removed) {
+          itemsRemoved++;
+        } else {
+          failedRemoves++;
+        }
       } else {
-        logger.debug("State={}. Verifying {}", state, locUri);
-        verify(locUri, item, resourcePath, 0);
+        logger.debug("------> {} State={}. Verifying {}", itemCount, state, locUri);
+        boolean verified = verify(locUri, latestItem, resourcePath, 0);
+        if (verified) {
+          itemsVerified++;
+        } else {
+          failedVerifications++;
+        }
       }
+    // missing resources
     } else { // resource does not exist
       if (!CH_DELETED.equals(state)) {
-        logger.debug("State={}. Downloading {}", state, locUri);
-        download(locUri, item, resourcePath, 0);
+        logger.debug("------> {} State={}. Downloading {}", itemCount, state, locUri);
+        boolean downloaded = download(locUri, latestItem, resourcePath, 0);
+        if (downloaded) {
+          itemsDownloaded++;
+        } else {
+          failedDownloads++;
+        }
+      } else {
+        logger.debug("------> {} State={}. No action {}", itemCount, state, locUri);
+        itemsNoAction++;
       }
     }
   }
@@ -333,50 +399,81 @@ public class Synchronizer {
     return uri2;
   }
 
-  private void download(URI locUri, UrlItem item, File resourcePath, int downloadCounter) {
-    if (++downloadCounter > MAX_DOWNLOAD_RETRY) {
-      logger.warn("Giving up on download: {}", locUri);
-      return;
+  private boolean download(URI locUri, UrlItem item, File resourcePath, int downloadCounter) {
+
+    if (++downloadCounter > getMaxDownloadRetry()) {
+      logger.warn("Giving up on download because retry exceeds {}: {}", getMaxDownloadRetry(), locUri);
+      return false;
     }
+    if (trialRun) {
+      logger.debug("Trial run. Not downloading: {}", locUri);
+      verify(locUri, item, resourcePath, downloadCounter);
+      return false;
+    }
+    if (itemsDownloaded >= maxDownloads) {
+      logger.debug("Stopped downloading. itemsDownloaded ({}) >= maxDownloads ({}). Not downloading: {}"
+        , itemsDownloaded, maxDownloads, locUri);
+      verify(locUri, item, resourcePath, downloadCounter);
+      return false;
+    }
+
+    boolean downloaded = false;
     Result<File> result = getResourceReader().read(locUri, resourcePath);
     if (result.getContent().isPresent()) {
-      verify(locUri, item, resourcePath, downloadCounter);
+      downloaded = verify(locUri, item, resourcePath, downloadCounter);
     } else {
       logger.warn("Failed download: ", result.lastError());
     }
+    return downloaded;
   }
 
-  private void verify(URI locUri, UrlItem item, File resourcePath, int downloadCounter) {
+  private boolean verify(URI locUri, UrlItem item, File resourcePath, int downloadCounter) {
     VerificationPolicy policy = getVerificationPolicy();
     VerificationStatus stHash = VerificationStatus.not_verified;
     VerificationStatus stLastMod = VerificationStatus.not_verified;
     VerificationStatus stLength = VerificationStatus.not_verified;
 
-    if (policy.continueVerification(stHash, stLastMod, stLength)) {
-      Optional<String> maybeHash = item.getMetadata().flatMap(RsMd::getHash);
-      if (maybeHash.isPresent()) {
-        stHash = verifyHash(resourcePath, maybeHash.get(), locUri);
+    if (resourcePath.exists()) {
+      if (policy.continueVerification(stHash, stLastMod, stLength)) {
+        Optional<String> maybeHash = item.getMetadata().flatMap(RsMd::getHash);
+        if (maybeHash.isPresent()) {
+          stHash = verifyHash(resourcePath, maybeHash.get(), locUri);
+        }
+      }
+
+      if (policy.continueVerification(stHash, stLastMod, stLength)) {
+        Optional<ZonedDateTime> maybeLastModified = item.getLastmod();
+        if (maybeLastModified.isPresent()) {
+          stLastMod = verifyLastMod(resourcePath, maybeLastModified.get(), locUri);
+        }
+      }
+
+      if (policy.continueVerification(stHash, stLastMod, stLength)) {
+        Optional<Long> maybeSize = item.getMetadata().flatMap(RsMd::getLength);
+        if (maybeSize.isPresent()) {
+          stLength = verifyLength(resourcePath, maybeSize.get(), locUri);
+        }
       }
     }
 
-    if (policy.continueVerification(stHash, stLastMod, stLength)) {
-      Optional<ZonedDateTime> maybeLastModified = item.getLastmod();
-      if (maybeLastModified.isPresent()) {
-        stLastMod = verifyLastMod(resourcePath, maybeLastModified.get(), locUri);
+    boolean verified = false;
+    if (policy.repeatDownload(stHash, stLastMod, stLength, downloadCounter, resourcePath.exists())) {
+      if (trialRun) {
+        logger.debug("Trial run. Not repeating download: {}", locUri);
+      } else if (itemsDownloaded >= maxDownloads) {
+        logger.debug("Max downloads reached. Not downloading: {}", locUri);
+      } else {
+        logger.info("Repeating download. stHash={}, stLastMod={}, stLength={}, download count={}, uri={}",
+          stHash, stLastMod, stLength, downloadCounter, locUri);
+        verified = download(locUri, item, resourcePath, downloadCounter);
       }
     }
 
-    if (policy.continueVerification(stHash, stLastMod, stLength)) {
-      Optional<Long> maybeSize = item.getMetadata().flatMap(RsMd::getLength);
-      if (maybeSize.isPresent()) {
-        stLength = verifyLength(resourcePath, maybeSize.get(), locUri);
-      }
+    if (!verified) {
+      verified = policy.isVerified(stHash, stLastMod, stLength, resourcePath.exists());
+      if (!verified)  logger.warn("Resource not verified: {}", locUri);
     }
-
-    if (policy.repeatDownload(stHash, stLastMod, stLength, downloadCounter)) {
-      logger.info("Repeating download. stHash={}, stLastMod={}, stLength={}", stHash, stLastMod, stLength);
-      download(locUri, item, resourcePath, downloadCounter);
-    }
+    return verified;
   }
 
   private VerificationStatus verifyHash(File resourcePath, String hash, URI locUri) {
@@ -406,7 +503,7 @@ public class Synchronizer {
       localHash = sb.toString();
       if (remoteHash.equalsIgnoreCase(localHash)) {
         status = VerificationStatus.verification_success;
-        logger.debug("Verified {} hash of {}", algorithm, locUri);
+        logger.debug("Verified {} hash of {}.", algorithm, locUri);
       } else {
         status = VerificationStatus.verification_failure;
         logger.warn("Hash failure. algorithm={}, remote={}, local={}, uri={}", algorithm, remoteHash, localHash, locUri);
@@ -457,8 +554,17 @@ public class Synchronizer {
     return status;
   }
 
-  private void remove(URI locUri, UrlItem item, File resourcePath) {
-
+  private boolean remove(URI locUri, UrlItem item, File resourcePath) {
+    boolean removed = false;
+    if (resourcePath.exists()) {
+      removed = resourcePath.delete();
+      if (!removed) {
+        logger.warn("Resource not removed: {} --> {}", locUri, resourcePath);
+      } else {
+        logger.debug("Resource removed: {} --> {}", locUri, resourcePath);
+      }
+    }
+    return removed;
   }
 
 }
