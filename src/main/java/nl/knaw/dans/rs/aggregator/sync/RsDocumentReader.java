@@ -54,7 +54,7 @@ public class RsDocumentReader extends AbstractUriReader {
     return rsBuilder;
   }
 
-  private LambdaUtil.Function_WithExceptions<HttpResponse, RsRoot, Exception> rsConverter = (response) -> {
+  private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> rsConverter = (uri, response) -> {
     InputStream inStream = null;
     if (response.getEntity() != null) {
       inStream = response.getEntity().getContent();

@@ -27,6 +27,8 @@ public class RsExplorer extends AbstractUriExplorer {
 
   private final ResourceSyncContext rsContext;
 
+  private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> converter;
+
   public boolean followParentLinks = true;
   public boolean followIndexLinks = true;
   public boolean followChildLinks = true;
@@ -51,6 +53,11 @@ public class RsExplorer extends AbstractUriExplorer {
     return this;
   }
 
+  public RsExplorer withConverter(LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> converter) {
+    this.converter = converter;
+    return this;
+  }
+
   public ResultIndex explore(URI uri) {
     ResultIndex index = new ResultIndex();
     explore(uri, index);
@@ -60,7 +67,7 @@ public class RsExplorer extends AbstractUriExplorer {
   @SuppressWarnings ("unchecked")
   @Override
   public Result<RsRoot> explore(URI uri, ResultIndex index) {
-    Result<RsRoot> result = execute(uri, rsConverter);
+    Result<RsRoot> result = execute(uri, getConverter());
     index.add(result);
     Capability capability = extractCapability(result);
 
@@ -208,9 +215,16 @@ public class RsExplorer extends AbstractUriExplorer {
     return rsContext;
   }
 
-  private LambdaUtil.Function_WithExceptions<HttpResponse, RsRoot, Exception> rsConverter = (response) -> {
+  private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> rsConverter = (uri, response) -> {
     InputStream inStream = response.getEntity().getContent();
     return new RsBuilder(this.getRsContext()).setInputStream(inStream).build().orElse(null);
   };
+
+  private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> getConverter() {
+    if (converter == null) {
+      converter = rsConverter;
+    }
+    return converter;
+  }
 
 }

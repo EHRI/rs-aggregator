@@ -24,7 +24,7 @@ public class LiveSynchronizerTest {
 
   @BeforeClass
   public static void initialize() throws Exception {
-    //assumeTrue(Testing.LIVE_TESTS);
+    assumeTrue(Testing.LIVE_TESTS);
   }
 
   @Test

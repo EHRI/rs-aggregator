@@ -5,15 +5,14 @@ import nl.knaw.dans.rs.aggregator.http.UriRegulator;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 /**
  * Created on 2017-04-13 09:34.
  */
 public class PathFinder {
 
-  public static final String DIR_METADATA = "__MD__";
-  public static final String DIR_RESOURCES = "__RS__";
+  public static final String DIR_METADATA = "__MOR__";
+  public static final String DIR_RESOURCES = "__SOR__";
 
   private final String host;
   private final int port;

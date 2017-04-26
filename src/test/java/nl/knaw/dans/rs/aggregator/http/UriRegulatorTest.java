@@ -29,7 +29,7 @@ public class UriRegulatorTest {
       {"urn:nbn:nl:ui:13-k6k2-ih", "urn:nbn:nl:ui:13-k6k2-ih"},
       {null, null},
       {"", ""},
-      {"http://publisher-connector.core.ac.uk/resourcesync/data/elsevier/pdf/000/aHR0cDovL2FwaS5lbHNldmllci5jb20vY29udGVudC9hcnRpY2xlL3BpaS8wMDE0NTc5MzkwODA1MTdt.pdf",
+      {"http://Publisher-Connector.CORE.ac.uk/resourcesync/data/elsevier/pdf/000/aHR0cDovL2FwaS5lbHNldmllci5jb20vY29udGVudC9hcnRpY2xlL3BpaS8wMDE0NTc5MzkwODA1MTdt.pdf",
         "http://publisher-connector.core.ac.uk/resourcesync/data/elsevier/pdf/000/aHR0cDovL2FwaS5lbHNldmllci5jb20vY29udGVudC9hcnRpY2xlL3BpaS8wMDE0NTc5MzkwODA1MTdt.pdf"},
     };
 

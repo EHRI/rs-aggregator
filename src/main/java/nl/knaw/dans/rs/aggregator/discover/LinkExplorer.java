@@ -54,11 +54,11 @@ import java.util.regex.Pattern;
 public class LinkExplorer extends AbstractUriExplorer {
 
   private final ResourceSyncContext rsContext;
-  private LambdaUtil.Function_WithExceptions<HttpResponse, List<String>, ?> responseReader;
+  private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, List<String>, ?> responseReader;
 
   public LinkExplorer(CloseableHttpClient httpClient,
                       ResourceSyncContext rsContext,
-                      LambdaUtil.Function_WithExceptions<HttpResponse, List<String>, ?> responseReader) {
+                      LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, List<String>, ?> responseReader) {
     super(httpClient);
     this.rsContext = rsContext;
     this.responseReader = responseReader;
@@ -88,7 +88,7 @@ public class LinkExplorer extends AbstractUriExplorer {
     return linkList;
   };
 
-  static LambdaUtil.Function_WithExceptions<HttpResponse, List<String>, Exception> linkReader = (response) -> {
+  static LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, List<String>, Exception> linkReader = (uri, response) -> {
 
     // a webpage that contains a link to a Capability List in the <head> section
     // http://www.openarchives.org/rs/1.0/resourcesync#ex_9
@@ -121,7 +121,7 @@ public class LinkExplorer extends AbstractUriExplorer {
     return uriList;
   };
 
-  static LambdaUtil.Function_WithExceptions<HttpResponse, List<String>, Exception> robotsReader = (response) -> {
+  static LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, List<String>, Exception> robotsReader = (uri, response) -> {
     String text = IOUtils.toString(response.getEntity().getContent(), getCharset(response));
     Matcher match = Pattern.compile("(?m)^Sitemap: (.*?)$").matcher(text);
     List<String> uriList = new ArrayList<>();

@@ -11,12 +11,6 @@ import java.util.Optional;
  */
 public class UriRegulator {
 
-//  public static URI normalize(@Nonnull URI uri) {
-//    URI uri2 = uri.normalize();
-//    uri2 = URI.create(uri2.toString().toLowerCase());
-//    return uri2;
-//  }
-
   public static String stripWWW(@Nonnull URI uri) {
     String host = uri.getHost();
     if (host == null) {

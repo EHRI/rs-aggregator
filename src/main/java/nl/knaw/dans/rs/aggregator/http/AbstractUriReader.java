@@ -51,10 +51,10 @@ public class AbstractUriReader {
     return currentUri;
   }
 
-  public <T> Result<T> execute(URI uri, LambdaUtil.Function_WithExceptions<HttpResponse, T, ?> func) {
+  public <R> Result<R> execute(URI uri, LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, R, ?> func) {
     logger.debug("Executing GET on uri {}", uri);
     currentUri = uri;
-    Result<T> result = new Result<T>(uri);
+    Result<R> result = new Result<R>(uri);
     HttpGet request = new HttpGet(uri);
     CloseableHttpResponse response = null;
     try  {
@@ -71,7 +71,7 @@ public class AbstractUriReader {
       if (statusCode < 200 || statusCode > 299) {
         result.addError(new RemoteException(statusCode, response.getStatusLine().getReasonPhrase(), uri));
       } else {
-        result.accept(func.apply(response));
+        result.accept(func.apply(uri, response));
       }
     } catch (Exception e) {
       logger.error("Error executing GET on uri {}", uri, e);

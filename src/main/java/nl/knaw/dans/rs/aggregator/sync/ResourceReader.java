@@ -44,7 +44,7 @@ public class ResourceReader extends AbstractUriReader {
     return currentFile;
   }
 
-  private LambdaUtil.Function_WithExceptions<HttpResponse, File, Exception> fileWriter = (response) -> {
+  private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, File, Exception> fileWriter = (uri, response) -> {
     HttpEntity entity = response.getEntity();
     if (entity != null) {
       File file = getCurrentFile();
