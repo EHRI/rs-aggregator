@@ -28,7 +28,7 @@ public class LiveSitemapCollectorTest {
   public void testCollectSitemaps() throws Exception {
     PathFinder pathFinder = new PathFinder(baseDirectory, URI.create(capabilityListUrl));
     SitemapCollector collector = new SitemapCollector(pathFinder);
-    ResultIndex index = collector.collectSitemaps();
-    assertThat(index.contains(capabilityListUrl), is(true));
+    //collector.collectSitemaps();
+    assertThat(collector.getCountCapabilityLists(), is(1));
   }
 }

@@ -17,7 +17,7 @@ import static org.junit.Assume.assumeTrue;
 /**
  * Created on 2017-04-18 10:41.
  */
-public class UriRegulatorTest {
+public class NormURITest {
 
   @Test
   public void testRegulate() throws Exception {
@@ -34,7 +34,7 @@ public class UriRegulatorTest {
     };
 
     for (String[] expectation : expectations) {
-      Optional<URI> maybeURI = UriRegulator.regulate(expectation[0]);
+      Optional<URI> maybeURI = NormURI.normalize(expectation[0]);
       String regulated = null;
       if (maybeURI.isPresent()) regulated = maybeURI.get().toString();
       System.out.println(expectation[0] + " -> " + expectation[1]);
@@ -47,7 +47,7 @@ public class UriRegulatorTest {
     assumeTrue(Testing.LIVE_TESTS);
     CloseableHttpClient httpClient = HttpClients.createDefault();
     String link = "http://publisher-connector.core.ac.uk/resourcesync/data/elsevier/pdf/000/aHR0cDovL2FwaS5lbHNldmllci5jb20vY29udGVudC9hcnRpY2xlL3BpaS8wMDE0NTc5MzkwODA1MTdt.pdf";
-    URI uri = UriRegulator.regulate(link).orElse(null);
+    URI uri = NormURI.normalize(link).orElse(null);
 
     System.out.println("link=" + link);
     System.out.println(" uri=" + uri);

@@ -29,7 +29,7 @@ public class Result<T> implements Consumer<T>, Comparable<Result> {
   private Set<String> invalidUris = new TreeSet<>();
 
   public Result(URI uri) {
-    this.uri = uri == null ? null : UriRegulator.regulate(uri).orElse(null);
+    this.uri = uri == null ? null : NormURI.normalize(uri).orElse(null);
   }
 
   public URI getUri() {

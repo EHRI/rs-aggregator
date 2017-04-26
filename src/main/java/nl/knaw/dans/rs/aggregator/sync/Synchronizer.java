@@ -4,7 +4,7 @@ import nl.knaw.dans.rs.aggregator.discover.ResultIndex;
 import nl.knaw.dans.rs.aggregator.discover.RsExplorer;
 import nl.knaw.dans.rs.aggregator.discover.UrlSetPivot;
 import nl.knaw.dans.rs.aggregator.http.Result;
-import nl.knaw.dans.rs.aggregator.http.UriRegulator;
+import nl.knaw.dans.rs.aggregator.http.NormURI;
 import nl.knaw.dans.rs.aggregator.xml.Capability;
 import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;
 import nl.knaw.dans.rs.aggregator.xml.RsMd;
@@ -267,7 +267,7 @@ public class Synchronizer {
 
         // add items to resourceItems
         for (UrlItem item : resourcelist.getItemList()) {
-          Optional<URI> maybeUri = UriRegulator.regulate(item.getLoc());
+          Optional<URI> maybeUri = NormURI.normalize(item.getLoc());
           if (maybeUri.isPresent()) {
             ZonedDateTime finalAt = at;
             item.getMetadata().map(rsMd1 -> rsMd1.withAt(finalAt));
@@ -297,7 +297,7 @@ public class Synchronizer {
 
         // add items to created-, updated-, deletedItems
         for (UrlItem item : changelist.getItemList()) {
-          Optional<URI> maybeUri = UriRegulator.regulate(item.getLoc());
+          Optional<URI> maybeUri = NormURI.normalize(item.getLoc());
           if (maybeUri.isPresent()) {
             URI locUri = maybeUri.get();
             Optional<ZonedDateTime> dateTime = item.getMetadata().flatMap(RsMd::getDateTime);

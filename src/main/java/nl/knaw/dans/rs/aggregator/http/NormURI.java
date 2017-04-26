@@ -9,39 +9,21 @@ import java.util.Optional;
 /**
  * Created on 2017-04-18 10:19.
  */
-public class UriRegulator {
+public class NormURI {
 
-  public static String stripWWW(@Nonnull URI uri) {
-    String host = uri.getHost();
-    if (host == null) {
-      return null;
-    } else {
-      return host.replaceAll("^www.", "");
-    }
-  }
-
-  public static File normalizePath(@Nonnull URI uri) {
-    String path = uri.getPath();
-    if (path == null) {
-      return new File("");
-    } else {
-      return new File(path.replaceAll("[//]", "/"));
-    }
-  }
-
-  public static Optional<URI> regulate(String uriString) {
+  public static Optional<URI> normalize(String uriString) {
     if (uriString == null) {
       return  Optional.empty();
     }
     try {
       URI uri = new URI(uriString);
-      return regulate(uri);
+      return normalize(uri);
     } catch (URISyntaxException e) {
       return Optional.empty();
     }
   }
 
-  public static Optional<URI> regulate(@Nonnull URI uri) {
+  public static Optional<URI> normalize(@Nonnull URI uri) {
     URI n = uri.normalize();
     String host = stripWWW(n);
     host = host == null ? null : host.toLowerCase();
@@ -55,6 +37,24 @@ public class UriRegulator {
     } catch (URISyntaxException e) {
       // unlikely deviation
       throw new RuntimeException(e);
+    }
+  }
+
+  private static String stripWWW(@Nonnull URI uri) {
+    String host = uri.getHost();
+    if (host == null) {
+      return null;
+    } else {
+      return host.replaceAll("^www.", "");
+    }
+  }
+
+  private static File normalizePath(@Nonnull URI uri) {
+    String path = uri.getPath();
+    if (path == null) {
+      return new File("");
+    } else {
+      return new File(path.replaceAll("[//]", "/"));
     }
   }
 }

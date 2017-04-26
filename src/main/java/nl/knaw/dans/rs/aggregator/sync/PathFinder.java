@@ -1,6 +1,6 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
-import nl.knaw.dans.rs.aggregator.http.UriRegulator;
+import nl.knaw.dans.rs.aggregator.http.NormURI;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -31,7 +31,7 @@ public class PathFinder {
     File baseDir = new File(baseDirectory);
     this.baseDirectory = baseDir.getAbsoluteFile();
 
-    URI uri2 = UriRegulator.regulate(capabilityListUri).orElse(null);
+    URI uri2 = NormURI.normalize(capabilityListUri).orElse(null);
     host = uri2.getHost();
     port = uri2.getPort();
     File filePath = new File(uri2.getPath());
@@ -97,7 +97,7 @@ public class PathFinder {
   }
 
   private String extractPath(@Nonnull URI uri) {
-    URI otherUri = UriRegulator.regulate(uri).orElse(null);
+    URI otherUri = NormURI.normalize(uri).orElse(null);
     String otherHost = otherUri.getHost();
     int otherPort = otherUri.getPort();
     if (!host.equals(otherHost)) {

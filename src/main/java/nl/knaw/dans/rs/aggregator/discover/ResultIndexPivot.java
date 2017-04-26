@@ -1,18 +1,13 @@
 package nl.knaw.dans.rs.aggregator.discover;
 
 import nl.knaw.dans.rs.aggregator.http.Result;
-import nl.knaw.dans.rs.aggregator.http.UriRegulator;
 import nl.knaw.dans.rs.aggregator.xml.Capability;
 import nl.knaw.dans.rs.aggregator.xml.RsMd;
 import nl.knaw.dans.rs.aggregator.xml.RsRoot;
 import nl.knaw.dans.rs.aggregator.xml.SitemapItem;
 import nl.knaw.dans.rs.aggregator.xml.Sitemapindex;
-import nl.knaw.dans.rs.aggregator.xml.UrlItem;
-import nl.knaw.dans.rs.aggregator.xml.Urlset;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

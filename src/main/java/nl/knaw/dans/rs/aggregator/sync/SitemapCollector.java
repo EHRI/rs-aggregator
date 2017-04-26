@@ -3,12 +3,13 @@ package nl.knaw.dans.rs.aggregator.sync;
 import nl.knaw.dans.rs.aggregator.discover.RemoteResourceSyncFrameworkException;
 import nl.knaw.dans.rs.aggregator.discover.ResultIndex;
 import nl.knaw.dans.rs.aggregator.discover.RsExplorer;
-import nl.knaw.dans.rs.aggregator.discover.UrlSetPivot;
 import nl.knaw.dans.rs.aggregator.http.Result;
+import nl.knaw.dans.rs.aggregator.http.NormURI;
 import nl.knaw.dans.rs.aggregator.util.LambdaUtil;
 import nl.knaw.dans.rs.aggregator.xml.Capability;
 import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;
 import nl.knaw.dans.rs.aggregator.xml.RsBuilder;
+import nl.knaw.dans.rs.aggregator.xml.RsMd;
 import nl.knaw.dans.rs.aggregator.xml.RsRoot;
 import nl.knaw.dans.rs.aggregator.xml.Sitemapindex;
 import nl.knaw.dans.rs.aggregator.xml.UrlItem;
@@ -37,6 +38,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -47,11 +49,16 @@ public class SitemapCollector {
   private static Logger logger = LoggerFactory.getLogger(SitemapCollector.class);
 
   private static final String NULL_DATE = "2000-01-01T00:00:00.000Z";
+  private static final String CH_CREATED = "created";
+  private static final String CH_UPDATED = "updated";
+  private static final String CH_DELETED = "deleted";
 
   private final PathFinder pathFinder;
 
   private CloseableHttpClient httpClient;
   private ResourceSyncContext rsContext;
+
+  private boolean collected;
 
   private Set<String> invalidUris;
   private List<Result<?>> errorResults;
@@ -107,24 +114,93 @@ public class SitemapCollector {
     return this;
   }
 
-  private void reset() {
-    errorResults = new ArrayList<>();
-    unhandledResults = new ArrayList<>();
-    latestItems = new HashMap<>();
+  public boolean isCollected() {
+    return collected;
+  }
 
-    countCapabilityLists = 0;
-    countResourceListIndexes = 0;
-    countChangelistIndexes = 0;
-    countResourceLists = 0;
-    countChangeLists = 0;
+  public Set<String> getInvalidUris() {
+    if (!collected) collectSitemaps();
+    return invalidUris;
+  }
 
-    countRemain = 0;
-    countCreated = 0;
-    countUpdated = 0;
-    countDeleted = 0;
+  public List<Result<?>> getErrorResults() {
+    if (!collected) collectSitemaps();
+    return errorResults;
+  }
 
-    ultimateResourceListAt = ZonedDateTime.parse(NULL_DATE).withZoneSameInstant(ZoneOffset.UTC);
-    ultimateChangeListFrom = ZonedDateTime.parse(NULL_DATE).withZoneSameInstant(ZoneOffset.UTC);
+  public List<Result<?>> getUnhandledResults() {
+    if (!collected) collectSitemaps();
+    return unhandledResults;
+  }
+
+  public boolean hasErrors() {
+    if (!collected) collectSitemaps();
+    return invalidUris.isEmpty() && errorResults.isEmpty() && unhandledResults.isEmpty();
+  }
+
+  public int getCountCapabilityLists() {
+    if (!collected) collectSitemaps();
+    return countCapabilityLists;
+  }
+
+  public int getCountResourceListIndexes() {
+    if (!collected) collectSitemaps();
+    return countResourceListIndexes;
+  }
+
+  public int getCountChangelistIndexes() {
+    if (!collected) collectSitemaps();
+    return countChangelistIndexes;
+  }
+
+  public int getCountResourceLists() {
+    if (!collected) collectSitemaps();
+    return countResourceLists;
+  }
+
+  public int getCountChangeLists() {
+    if (!collected) collectSitemaps();
+    return countChangeLists;
+  }
+
+  public int getCountRemain() {
+    if (!collected) collectSitemaps();
+    return countRemain;
+  }
+
+  public int getCountCreated() {
+    if (!collected) collectSitemaps();
+    return countCreated;
+  }
+
+  public int getCountUpdated() {
+    if (!collected) collectSitemaps();
+    return countUpdated;
+  }
+
+  public int getCountDeleted() {
+    if (!collected) collectSitemaps();
+    return countDeleted;
+  }
+
+  public ZonedDateTime getUltimateResourceListAt() {
+    if (!collected) collectSitemaps();
+    return ultimateResourceListAt;
+  }
+
+  public ZonedDateTime getUltimateChangeListFrom() {
+    if (!collected) collectSitemaps();
+    return ultimateChangeListFrom;
+  }
+
+  public ZonedDateTime getUltmateListDate() {
+    if (!collected) collectSitemaps();
+    return ultimateChangeListFrom.isAfter(ultimateResourceListAt) ? ultimateChangeListFrom : ultimateResourceListAt;
+  }
+
+  public Map<URI, UrlItem> getLatestItems() {
+    if (!collected) collectSitemaps();
+    return latestItems;
   }
 
   public void collectSitemaps() {
@@ -145,6 +221,27 @@ public class SitemapCollector {
         analyze(result);
       }
     }
+    collected = true;
+  }
+
+  private void reset() {
+    errorResults = new ArrayList<>();
+    unhandledResults = new ArrayList<>();
+    latestItems = new HashMap<>();
+
+    countCapabilityLists = 0;
+    countResourceListIndexes = 0;
+    countChangelistIndexes = 0;
+    countResourceLists = 0;
+    countChangeLists = 0;
+
+    countRemain = 0;
+    countCreated = 0;
+    countUpdated = 0;
+    countDeleted = 0;
+
+    ultimateResourceListAt = ZonedDateTime.parse(NULL_DATE).withZoneSameInstant(ZoneOffset.UTC);
+    ultimateChangeListFrom = ZonedDateTime.parse(NULL_DATE).withZoneSameInstant(ZoneOffset.UTC);
   }
 
   @SuppressWarnings("unchecked")
@@ -206,16 +303,101 @@ public class SitemapCollector {
       errorResults.add(usResult);
       logger.error("Invalid capability on sitemapindex '{}' : {}", xmlValue, usResult);
     }
-
   }
 
   private void analyzeResourceList(Result<Urlset> usResult) {
     countResourceLists++;
 
+    Urlset resourcelist = usResult.getContent().orElse(null);
+    ZonedDateTime listAt;
+    // ultimate date for resourceLists is in required md:at attribute
+    Optional<ZonedDateTime> maybeListAt = resourcelist.getMetadata().getAt();
+    if (maybeListAt.isPresent()) {
+      listAt = maybeListAt.get();
+      if (listAt.isAfter(ultimateResourceListAt)) ultimateResourceListAt = listAt;
+    } else {
+      usResult.addError(new RemoteResourceSyncFrameworkException("Missing required md:at attribute on resourceList"));
+      errorResults.add(usResult);
+      logger.warn("Missing required md:at attribute on resourceList at {}", usResult);
+      return;
+    }
+
+    // walk item list
+    for (UrlItem item : resourcelist.getItemList()) {
+      countRemain++;
+
+      // set rs:at on item if not present
+      Optional<ZonedDateTime> maybeAt = item.getMetadata().flatMap(RsMd::getAt);
+      if (!maybeAt.isPresent()) item.getMetadata().map(rsMd1 -> rsMd1.withAt(listAt));
+
+      // merge item with latestItems
+      mergeItem(usResult, item);
+    }
   }
 
   private void analyzeChangeList(Result<Urlset> usResult) {
     countChangeLists++;
+
+    Urlset changelist = usResult.getContent().orElse(null);
+    ZonedDateTime listFrom;
+
+    // ultimate date for changeLists is in required md:from attribute
+    Optional<ZonedDateTime> maybeListFrom = changelist.getMetadata().getFrom();
+    if (maybeListFrom.isPresent()) {
+      listFrom = maybeListFrom.get();
+      if (listFrom.isAfter(ultimateChangeListFrom)) ultimateChangeListFrom = listFrom;
+    } else {
+      usResult.addError(new RemoteResourceSyncFrameworkException("Missing required md:from attribute on changeList"));
+      errorResults.add(usResult);
+      logger.warn("Missing required md:from attribute on changeList: {}", usResult);
+      return;
+    }
+
+    // walk item list
+    for (UrlItem item : changelist.getItemList()) {
+
+      // set rs:datetime on item if not present
+      Optional<ZonedDateTime> dateTime = item.getMetadata().flatMap(RsMd::getDateTime);
+      if (!dateTime.isPresent()) item.getMetadata().map(rsMd1 -> rsMd1.withFrom(listFrom));
+
+      // keep count of changes
+      Optional<String> maybeChange = item.getMetadata().flatMap(RsMd::getChange);
+      if (maybeChange.isPresent()) {
+        String change = maybeChange.get();
+        if (CH_CREATED.equalsIgnoreCase(change)) {
+          countCreated++;
+        } else if (CH_UPDATED.equalsIgnoreCase(change)) {
+          countUpdated++;
+        } else if (CH_DELETED.equalsIgnoreCase(change)) {
+          countDeleted++;
+        } else {
+          usResult.addError(
+            new RemoteResourceSyncFrameworkException("Unrecognized md:change attribute on changeList: " + change));
+          errorResults.add(usResult);
+          logger.warn("Unrecognized md:change attribute on changeList '{} : {}", change, usResult);
+          return;
+        }
+      } else {
+        usResult.addError(new RemoteResourceSyncFrameworkException("Missing required md:change attribute on changeList"));
+        errorResults.add(usResult);
+        logger.warn("Missing required md:change attribute on changeList: {}", usResult);
+        return;
+      }
+
+      // merge item with latestItems
+      mergeItem(usResult, item);
+    }
+  }
+
+  private void mergeItem(Result<Urlset> usResult, UrlItem item) {
+    Optional<URI> maybeUri = NormURI.normalize(item.getLoc());
+    if (maybeUri.isPresent()) {
+      latestItems.merge(maybeUri.get(), item, UrlItem::latest);
+    } else {
+      usResult.addError(new RemoteResourceSyncFrameworkException("Missing required loc element on urlItem"));
+      errorResults.add(usResult);
+      logger.warn("Missing required loc element on urlItem: {}", usResult);
+    }
   }
 
   private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception>

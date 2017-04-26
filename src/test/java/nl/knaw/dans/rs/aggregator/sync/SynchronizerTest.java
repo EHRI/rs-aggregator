@@ -1,7 +1,5 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
-import com.sun.org.apache.xml.internal.utils.URI;
-import nl.knaw.dans.rs.aggregator.http.UriRegulator;
 import nl.knaw.dans.rs.aggregator.xml.RsMd;
 import nl.knaw.dans.rs.aggregator.xml.UrlItem;
 import org.junit.Test;
@@ -10,7 +8,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;

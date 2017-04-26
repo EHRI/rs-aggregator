@@ -1,7 +1,7 @@
 package nl.knaw.dans.rs.aggregator.discover;
 
 import nl.knaw.dans.rs.aggregator.http.Result;
-import nl.knaw.dans.rs.aggregator.http.UriRegulator;
+import nl.knaw.dans.rs.aggregator.http.NormURI;
 import nl.knaw.dans.rs.aggregator.xml.Capability;
 import nl.knaw.dans.rs.aggregator.xml.RsItem;
 import nl.knaw.dans.rs.aggregator.xml.RsMd;
@@ -83,7 +83,7 @@ public class UrlSetPivot extends ResultIndexPivot {
 
   public Map<URI, UrlItem> mapUrlItemsByUri(Capability capability) {
     return streamUrlItems(capability)
-      .collect(Collectors.toConcurrentMap(urlItem -> UriRegulator.regulate(urlItem.getLoc())
+      .collect(Collectors.toConcurrentMap(urlItem -> NormURI.normalize(urlItem.getLoc())
           .orElseGet(UrlSetPivot::getInvalidUri), urlItem -> urlItem,
         ((urlItem, urlItem2) -> {
         logger.warn("Duplicate URI: {} and {}", urlItem.getLoc(), urlItem2.getLoc());
