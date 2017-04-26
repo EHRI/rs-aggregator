@@ -76,6 +76,10 @@ public class Result<T> implements Consumer<T>, Comparable<Result> {
     errors.add(error);
   }
 
+  public boolean hasErrors() {
+    return errors.size() > 0;
+  }
+
   public Throwable lastError() {
     if (errors.isEmpty()) {
       return null;

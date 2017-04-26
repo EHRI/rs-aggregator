@@ -70,7 +70,7 @@ public class ResultIndex {
     return count;
   }
 
-  void add(Result result) throws IllegalStateException {
+  public void add(Result result) throws IllegalStateException {
     if (count == -1) {
       throw new IllegalStateException(
         "This " + getClass().getSimpleName() + " has been merged. Modification not allowed.");
@@ -79,7 +79,7 @@ public class ResultIndex {
     resultMap.put(result.getUri(), result);
   }
 
-  void addInvalidUri(String invalid) throws IllegalStateException {
+  public void addInvalidUri(String invalid) throws IllegalStateException {
     if (count == -1) {
       throw new IllegalStateException(
         "This " + getClass().getSimpleName() + " has been merged. Modification not allowed.");

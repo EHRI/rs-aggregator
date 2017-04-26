@@ -41,6 +41,7 @@ public class Synchronizer {
   private static final int MAX_DOWNLOADS = Integer.MAX_VALUE;
   private static final int MAX_DOWNLOAD_RETRY = 3;
   private static final String NULL_DATE = "2000-01-01T00:00:00.000Z";
+
   private static final String CH_CREATED = "created";
   private static final String CH_UPDATED = "updated";
   private static final String CH_DELETED = "deleted";
