@@ -1,10 +1,6 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
 import nl.knaw.dans.rs.aggregator.http.Testing;
-import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;
-import nl.knaw.dans.rs.aggregator.xml.UrlItem;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -15,7 +11,7 @@ import static org.junit.Assume.assumeTrue;
 /**
  * Created on 2017-04-19 17:25.
  */
-public class LiveSynchronizerTest {
+public class LiveSyncWorkerTest {
 
   private static String baseDirectory = "target/test-output/synchronizer";
   private static String capabilityListUrl = "http://zandbak11.dans.knaw.nl/ehri2/mdx/capabilitylist.xml";
@@ -30,9 +26,15 @@ public class LiveSynchronizerTest {
   @Test
   public void testSynchronize() throws Exception {
     PathFinder pathFinder = new PathFinder(baseDirectory, URI.create(capabilityListUrl));
-    Synchronizer synchronizer = new Synchronizer(pathFinder);
-    synchronizer.setTrialRun(false);
-    synchronizer.withMaxDownloadRetry(3).synchronize();
+
+    SyncWorker syncWorker = new SyncWorker()
+      .withMaxDownloadRetry(3)
+      .withTrialRun(false)
+      .withMaxDownloads(1000)
+      .withSitemapCollector(new SitemapCollector())
+      .withResourceManager(new FsResourceManager());
+
+      syncWorker.synchronize(pathFinder);
 
 //    System.out.println("\nRESOURCE ITEMS " + synchronizer.getResourceItems().size());
 //    //synchronizer.getResourceItems().keySet().forEach(System.out::println);

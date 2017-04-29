@@ -1,4 +1,4 @@
-package nl.knaw.dans.rs.aggregator.http;
+package nl.knaw.dans.rs.aggregator.util;
 
 import javax.annotation.Nonnull;
 import java.io.File;

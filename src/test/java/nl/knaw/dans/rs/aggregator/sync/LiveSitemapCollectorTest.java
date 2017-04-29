@@ -6,6 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.net.URI;
+import java.time.ZonedDateTime;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -21,14 +22,16 @@ public class LiveSitemapCollectorTest {
 
   @BeforeClass
   public static void initialize() throws Exception {
-    //assumeTrue(Testing.LIVE_TESTS);
+    assumeTrue(Testing.LIVE_TESTS);
   }
 
   @Test
   public void testCollectSitemaps() throws Exception {
     PathFinder pathFinder = new PathFinder(baseDirectory, URI.create(capabilityListUrl));
-    SitemapCollector collector = new SitemapCollector(pathFinder);
+    SitemapCollector collector = new SitemapCollector();
+      //.withAsOfDateTime(ZonedDateTime.now());
     //collector.collectSitemaps();
+    collector.collectSitemaps(pathFinder);
     assertThat(collector.getCountCapabilityLists(), is(1));
   }
 }

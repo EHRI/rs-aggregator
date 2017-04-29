@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.net.URI;
+import java.nio.file.FileStore;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -74,6 +75,14 @@ public class PathFinderTest {
 
     }
 
+  }
+
+  @Test
+  public void testFileStore() throws Exception {
+    Path path = Paths.get(".");
+    System.out.println(path.toAbsolutePath());
+    FileStore fStore = Files.getFileStore(path);
+    System.out.println(fStore);
   }
 
 }

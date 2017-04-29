@@ -1,5 +1,7 @@
-package nl.knaw.dans.rs.aggregator.http;
+package nl.knaw.dans.rs.aggregator.util;
 
+import nl.knaw.dans.rs.aggregator.http.Testing;
+import nl.knaw.dans.rs.aggregator.util.NormURI;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -20,7 +22,7 @@ import static org.junit.Assume.assumeTrue;
 public class NormURITest {
 
   @Test
-  public void testRegulate() throws Exception {
+  public void testNormalize() throws Exception {
     String[][] expectations = {
       {"http://www.ZANdbak02.dans.KNAW.nl/ehri2/..///mdy//capabilitylist.xml", "http://zandbak02.dans.knaw.nl/mdy/capabilitylist.xml"},
       {"http://www.ZANdbak02.dans.KNAW.nl/ehri2/..///mdy//capabilitylist.xml#abc", "http://zandbak02.dans.knaw.nl/mdy/capabilitylist.xml"},
@@ -31,14 +33,16 @@ public class NormURITest {
       {"", ""},
       {"http://Publisher-Connector.CORE.ac.uk/resourcesync/data/elsevier/pdf/000/aHR0cDovL2FwaS5lbHNldmllci5jb20vY29udGVudC9hcnRpY2xlL3BpaS8wMDE0NTc5MzkwODA1MTdt.pdf",
         "http://publisher-connector.core.ac.uk/resourcesync/data/elsevier/pdf/000/aHR0cDovL2FwaS5lbHNldmllci5jb20vY29udGVudC9hcnRpY2xlL3BpaS8wMDE0NTc5MzkwODA1MTdt.pdf"},
+      //{"http://www.düsseldorf.de/resources", "http://düsseldorf.de/resources"},
+      //{"http://fußball.de/resources", "http://fußball.de/resources"}
     };
 
     for (String[] expectation : expectations) {
       Optional<URI> maybeURI = NormURI.normalize(expectation[0]);
-      String regulated = null;
-      if (maybeURI.isPresent()) regulated = maybeURI.get().toString();
-      System.out.println(expectation[0] + " -> " + expectation[1]);
-      assertThat(regulated, equalTo(expectation[1]));
+      String normalized = null;
+      if (maybeURI.isPresent()) normalized = maybeURI.get().toString();
+      System.out.println(expectation[0] + " -> " + expectation[1] + " -->> " + normalized);
+      assertThat(normalized, equalTo(expectation[1]));
     }
   }
 

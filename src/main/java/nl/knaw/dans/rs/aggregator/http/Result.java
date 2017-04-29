@@ -1,6 +1,8 @@
 package nl.knaw.dans.rs.aggregator.http;
 
 
+import nl.knaw.dans.rs.aggregator.util.NormURI;
+
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
@@ -29,7 +31,7 @@ public class Result<T> implements Consumer<T>, Comparable<Result> {
   private Set<String> invalidUris = new TreeSet<>();
 
   public Result(URI uri) {
-    this.uri = uri == null ? null : NormURI.normalize(uri).orElse(null);
+    if (uri != null) this.uri = NormURI.normalize(uri).orElse(null);
   }
 
   public URI getUri() {

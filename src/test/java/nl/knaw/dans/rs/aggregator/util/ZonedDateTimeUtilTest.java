@@ -1,4 +1,4 @@
-package nl.knaw.dans.rs.aggregator.xml;
+package nl.knaw.dans.rs.aggregator.util;
 
 
 import org.junit.Test;
@@ -6,21 +6,22 @@ import org.junit.Test;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Date;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.is;
 
-public class ZonedDateTimeAdapterTest {
+public class ZonedDateTimeUtilTest {
 
   @Test
   public void testMarshalUnmarshal() throws Exception {
-    ZonedDateTimeAdapter adapter = new ZonedDateTimeAdapter();
 
     // assumed timezone of strings with no timezone info
     ZoneId newZoneId = ZoneId.of("UTC+10:00");
     // keep old zoneId for reset
-    ZoneId oldZoneId = ZonedDateTimeAdapter.setZoneId(newZoneId);
+    ZoneId oldZoneId = ZonedDateTimeUtil.setZoneId(newZoneId);
 
     String[] inpexp = {
       // local dates
@@ -46,35 +47,53 @@ public class ZonedDateTimeAdapterTest {
     for (int i = 0; i < inpexp.length; i += 2) {
       String input = inpexp[i];
       String expected = inpexp[i + 1];
-      ZonedDateTime zdt1 = adapter.unmarshal(input);
-      String str1 = adapter.marshal(zdt1);
+      ZonedDateTime zdt1 = ZonedDateTimeUtil.fromXmlString(input);
+      String str1 = ZonedDateTimeUtil.toXmlString(zdt1);
       //System.out.println(input + " -> " + str1);
       assertThat(str1, equalTo(expected));
 
-      ZonedDateTime zdt2 = adapter.unmarshal(str1);
-      String str2 = adapter.marshal(zdt2);
+      ZonedDateTime zdt2 = ZonedDateTimeUtil.fromXmlString(str1);
+      String str2 = ZonedDateTimeUtil.toXmlString(zdt2);
       assertThat(str2, equalTo(expected));
+
+      long lm1 = ZonedDateTimeUtil.toLong(zdt1);
+      ZonedDateTime zdt3 = ZonedDateTimeUtil.fromLong(lm1);
+      long lm2 = ZonedDateTimeUtil.toLong(zdt3);
+      ZonedDateTime zdt4 = ZonedDateTimeUtil.fromLong(lm1);
+      String str4 = ZonedDateTimeUtil.toXmlString(zdt4);
+      System.out.println(input + " -> " + str1 + " -> " + new Date(lm1) + " = " + lm1 + " -> " + str4);
+      assertThat(lm1, is(lm2));
+      //assertThat(str1, equalTo(str4));
     }
 
     // reset zoneId
-    ZoneId replacedZoneId = ZonedDateTimeAdapter.setZoneId(oldZoneId);
+    ZoneId replacedZoneId = ZonedDateTimeUtil.setZoneId(oldZoneId);
     assertThat(replacedZoneId, equalTo(newZoneId));
   }
 
   @Test(expected = DateTimeParseException.class)
   public void testUnmarshalWithInvalidString() throws Exception {
-    new ZonedDateTimeAdapter().unmarshal("ivalid string");
+    ZonedDateTimeUtil.fromXmlString("ivalid string");
   }
 
   @Test
   public void testWithNullInput() throws Exception {
-    ZonedDateTimeAdapter adapter = new ZonedDateTimeAdapter();
 
     String str = null;
-    assertThat(adapter.unmarshal(str), nullValue(ZonedDateTime.class));
+    assertThat(ZonedDateTimeUtil.fromXmlString(str), nullValue(ZonedDateTime.class));
 
     ZonedDateTime zdt = null;
-    assertThat(adapter.marshal(zdt), nullValue(String.class));
+    assertThat(ZonedDateTimeUtil.toXmlString(zdt), nullValue(String.class));
+  }
+
+  @Test
+  public void testLong() {
+    long lm1 = 0L;
+    ZonedDateTime zdt = ZonedDateTimeUtil.fromLong(lm1);
+    System.out.println(zdt);
+    long lm2 = ZonedDateTimeUtil.toLong(zdt);
+    //System.out.println(lm1 + " -> " + lm2);
+    assertThat(lm2, is(0L));
   }
 
 }

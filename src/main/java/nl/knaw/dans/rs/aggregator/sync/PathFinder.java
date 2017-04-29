@@ -1,10 +1,17 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
-import nl.knaw.dans.rs.aggregator.http.NormURI;
+import nl.knaw.dans.rs.aggregator.util.NormURI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.net.URI;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created on 2017-04-13 09:34.
@@ -13,6 +20,10 @@ public class PathFinder {
 
   public static final String DIR_METADATA = "__MOR__";
   public static final String DIR_RESOURCES = "__SOR__";
+
+  private static Logger logger = LoggerFactory.getLogger(PathFinder.class);
+
+  private final ZonedDateTime operationDateTime;
 
   private final String host;
   private final int port;
@@ -28,6 +39,7 @@ public class PathFinder {
 
   public PathFinder(@Nonnull String baseDirectory, @Nonnull URI capabilityListUri) {
     this.capabilityListUri = capabilityListUri;
+    operationDateTime = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
     File baseDir = new File(baseDirectory);
     this.baseDirectory = baseDir.getAbsoluteFile();
 
@@ -49,6 +61,8 @@ public class PathFinder {
     metadataDirectory = new File(setDirectory, DIR_METADATA);
     resourceDirectory = new File(setDirectory, DIR_RESOURCES);
     capabilityListFile = new File(metadataDirectory, fileName);
+
+    logger.info("Created path finder with operationDateTime {}", operationDateTime);
   }
 
   public String getHost() {
@@ -106,6 +120,11 @@ public class PathFinder {
       throw new IllegalArgumentException("Ports unequal. this port:" + port + " other: " + otherPort);
     }
     return otherUri.getPath();
+  }
+
+  public Set<File> findResourceFilePaths(Collection<URI> uris) {
+    return uris.parallelStream()
+      .map(this::findResourceFilePath).collect(Collectors.toSet());
   }
 
 

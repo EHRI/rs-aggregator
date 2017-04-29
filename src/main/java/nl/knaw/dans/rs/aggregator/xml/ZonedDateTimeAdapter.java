@@ -1,21 +1,18 @@
 package nl.knaw.dans.rs.aggregator.xml;
 
+import nl.knaw.dans.rs.aggregator.util.ZonedDateTimeUtil;
+
 import javax.xml.bind.annotation.adapters.XmlAdapter;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
 
 /**
  * Adapter for conversion between a {@link ZonedDateTime} and an ISO 8601 profile know as W3C Datetime format.
  * <p>
  * The unmarshal proces will convert given datetime strings to UTC (Coordinated Universal Time).
  * If a datetime string has no timezone info, we assume that the datetime is in the timezone
- * that is returned by the static {@link ZonedDateTimeAdapter#getZoneId()}. This timezone will default to
- * {@link ZoneId#systemDefault()}, and can be set with {@link ZonedDateTimeAdapter#setZoneId(ZoneId)}.
+ * that is returned by the static {@link ZonedDateTimeUtil#getZoneId()}. This timezone will default to
+ * {@link ZoneId#systemDefault()}, and can be set with {@link ZonedDateTimeUtil#setZoneId(ZoneId)}.
  *  </p>
  * The following examples illustrate the conversion of several valid W3C Datetime strings (unmarshal -> marshal).
  * Datetimes without timezone info were calculated with an offset of UTC+10:00.
@@ -45,49 +42,16 @@ import java.time.temporal.ChronoField;
 */
 public class ZonedDateTimeAdapter extends XmlAdapter<String, ZonedDateTime> {
 
-  private static ZoneId ZONE_ID;
-
-  public static ZoneId getZoneId() {
-    if (ZONE_ID == null) {
-      ZONE_ID = ZoneId.systemDefault();
-    }
-    return ZONE_ID;
-  }
-
-  public static ZoneId setZoneId(ZoneId zoneId) {
-    ZoneId oldZoneId = ZONE_ID;
-    ZONE_ID = zoneId;
-    return oldZoneId;
-  }
-
-  private DateTimeFormatter localFormat = new DateTimeFormatterBuilder()
-    .appendPattern("yyyy[-MM[-dd['T'HH[:mm[:ss]]]]]")
-    .parseDefaulting(ChronoField.MONTH_OF_YEAR, 1)
-    .parseDefaulting(ChronoField.DAY_OF_MONTH, 1)
-    .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-    .optionalStart()
-    .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
-    .toFormatter();
 
   @Override
   public ZonedDateTime unmarshal(String value) throws Exception {
-    if (value == null) {
-      return null;
-    }
-    if (value.matches(".*([Z]|[+-][0-9]{1,2}:[0-9]{1,2})$")) {
-      return ZonedDateTime.parse(value).withZoneSameInstant(ZoneOffset.UTC);
-    } else {
-      LocalDateTime local = LocalDateTime.parse(value, localFormat);
-      ZonedDateTime localZ = ZonedDateTime.of(local, getZoneId());
-      return localZ.withZoneSameInstant(ZoneOffset.UTC);
-    }
+    return ZonedDateTimeUtil.fromXmlString(value);
   }
 
   @Override
   public String marshal(ZonedDateTime value) throws Exception {
-    if (value == null) {
-      return null;
-    }
-    return value.toString();
+    return  ZonedDateTimeUtil.toXmlString(value);
   }
+
+
 }

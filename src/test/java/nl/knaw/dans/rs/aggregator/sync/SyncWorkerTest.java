@@ -16,7 +16,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 /**
  * Created on 2017-04-23 14:53.
  */
-public class SynchronizerTest {
+public class SyncWorkerTest {
 
   @Test
   public void testMerge() {

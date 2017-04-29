@@ -1,9 +1,12 @@
 package nl.knaw.dans.rs.aggregator.xml;
 
+import nl.knaw.dans.rs.aggregator.util.NormURI;
+
 import javax.annotation.Nonnull;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +32,10 @@ public abstract class RsItem<T extends RsItem> {
   public T withLoc(@Nonnull String loc) {
     this.loc = Objects.requireNonNull(loc);
     return (T) this;
+  }
+
+  public Optional<URI> getNormalizedUri() {
+    return NormURI.normalize(loc);
   }
 
   public Optional<ZonedDateTime> getLastmod() {

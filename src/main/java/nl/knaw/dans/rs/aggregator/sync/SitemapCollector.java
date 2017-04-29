@@ -4,11 +4,12 @@ import nl.knaw.dans.rs.aggregator.discover.RemoteResourceSyncFrameworkException;
 import nl.knaw.dans.rs.aggregator.discover.ResultIndex;
 import nl.knaw.dans.rs.aggregator.discover.RsExplorer;
 import nl.knaw.dans.rs.aggregator.http.Result;
-import nl.knaw.dans.rs.aggregator.http.NormURI;
+import nl.knaw.dans.rs.aggregator.util.NormURI;
 import nl.knaw.dans.rs.aggregator.util.LambdaUtil;
 import nl.knaw.dans.rs.aggregator.xml.Capability;
 import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;
 import nl.knaw.dans.rs.aggregator.xml.RsBuilder;
+import nl.knaw.dans.rs.aggregator.xml.RsConstants;
 import nl.knaw.dans.rs.aggregator.xml.RsMd;
 import nl.knaw.dans.rs.aggregator.xml.RsRoot;
 import nl.knaw.dans.rs.aggregator.xml.Sitemapindex;
@@ -44,21 +45,16 @@ import java.util.Set;
 /**
  * Created on 2017-04-26 09:13.
  */
-public class SitemapCollector {
+public class SitemapCollector implements RsConstants {
 
   private static Logger logger = LoggerFactory.getLogger(SitemapCollector.class);
-
-  private static final String NULL_DATE = "2000-01-01T00:00:00.000Z";
-  private static final String CH_CREATED = "created";
-  private static final String CH_UPDATED = "updated";
-  private static final String CH_DELETED = "deleted";
-
-  private final PathFinder pathFinder;
 
   private CloseableHttpClient httpClient;
   private ResourceSyncContext rsContext;
 
-  private boolean collected;
+  private PathFinder pathFinder;
+
+  private ZonedDateTime asOfDateTime;
 
   private Set<String> invalidUris;
   private List<Result<?>> errorResults;
@@ -78,11 +74,13 @@ public class SitemapCollector {
   private int countUpdated;
   private int countDeleted;
 
-  public SitemapCollector(PathFinder pathFinder) {
-    this.pathFinder = pathFinder;
+  private boolean collected;
+
+  public SitemapCollector() {
   }
 
   private PathFinder getPathFinder() {
+    if (pathFinder == null) throw new IllegalStateException("Missing PathFinder. No PathFinder was set.");
     return pathFinder;
   }
 
@@ -114,96 +112,114 @@ public class SitemapCollector {
     return this;
   }
 
+  public ZonedDateTime getAsOfDateTime() {
+    if (asOfDateTime == null) {
+      asOfDateTime = ZonedDateTime.parse(NULL_DATE).withZoneSameInstant(ZoneOffset.UTC);
+    }
+    return asOfDateTime;
+  }
+
+  public SitemapCollector withAsOfDateTime(ZonedDateTime asOfDateTime) {
+    this.asOfDateTime = asOfDateTime;
+    return this;
+  }
+
   public boolean isCollected() {
     return collected;
   }
 
   public Set<String> getInvalidUris() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return invalidUris;
   }
 
   public List<Result<?>> getErrorResults() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return errorResults;
   }
 
   public List<Result<?>> getUnhandledResults() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return unhandledResults;
   }
 
   public boolean hasErrors() {
-    if (!collected) collectSitemaps();
-    return invalidUris.isEmpty() && errorResults.isEmpty() && unhandledResults.isEmpty();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
+    return !(invalidUris.isEmpty() && errorResults.isEmpty() && unhandledResults.isEmpty());
+  }
+
+  public int countErrors() {
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
+    return invalidUris.size() + errorResults.size() + unhandledResults.size();
   }
 
   public int getCountCapabilityLists() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countCapabilityLists;
   }
 
   public int getCountResourceListIndexes() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countResourceListIndexes;
   }
 
   public int getCountChangelistIndexes() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countChangelistIndexes;
   }
 
   public int getCountResourceLists() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countResourceLists;
   }
 
   public int getCountChangeLists() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countChangeLists;
   }
 
   public int getCountRemain() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countRemain;
   }
 
   public int getCountCreated() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countCreated;
   }
 
   public int getCountUpdated() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countUpdated;
   }
 
   public int getCountDeleted() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countDeleted;
   }
 
   public ZonedDateTime getUltimateResourceListAt() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return ultimateResourceListAt;
   }
 
   public ZonedDateTime getUltimateChangeListFrom() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return ultimateChangeListFrom;
   }
 
   public ZonedDateTime getUltmateListDate() {
-    if (!collected) collectSitemaps();
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return ultimateChangeListFrom.isAfter(ultimateResourceListAt) ? ultimateChangeListFrom : ultimateResourceListAt;
   }
 
-  public Map<URI, UrlItem> getLatestItems() {
-    if (!collected) collectSitemaps();
+  public Map<URI, UrlItem> getMostRecentItems() {
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return latestItems;
   }
 
-  public void collectSitemaps() {
+  public void collectSitemaps(PathFinder pathFinder) {
+    this.pathFinder = pathFinder;
     reset();
     RsExplorer explorer = new RsExplorer(getHttpClient(), getRsContext())
       .withConverter(fileSavingConverter)
@@ -213,6 +229,9 @@ public class SitemapCollector {
     ResultIndex index = explorer.explore(pathFinder.getCapabilityListUri());
 
     invalidUris = index.getInvalidUris();
+    for (String invalidUri : invalidUris) {
+      logger.warn("Found invalid URI: {}", invalidUri);
+    }
 
     for (Result<?> result : index.getResultMap().values()) {
       if (result.hasErrors()) {
@@ -306,8 +325,6 @@ public class SitemapCollector {
   }
 
   private void analyzeResourceList(Result<Urlset> usResult) {
-    countResourceLists++;
-
     Urlset resourcelist = usResult.getContent().orElse(null);
     ZonedDateTime listAt;
     // ultimate date for resourceLists is in required md:at attribute
@@ -322,21 +339,27 @@ public class SitemapCollector {
       return;
     }
 
-    // walk item list
-    for (UrlItem item : resourcelist.getItemList()) {
-      countRemain++;
+    if (listAt.isAfter(getAsOfDateTime())) {
+      countResourceLists++;
 
-      // set rs:at on item if not present
-      Optional<ZonedDateTime> maybeAt = item.getMetadata().flatMap(RsMd::getAt);
-      if (!maybeAt.isPresent()) item.getMetadata().map(rsMd1 -> rsMd1.withAt(listAt));
+      // walk item list
+      for (UrlItem item : resourcelist.getItemList()) {
+        countRemain++;
 
-      // merge item with latestItems
-      mergeItem(usResult, item);
+        // set rs:at on item if not present
+        Optional<ZonedDateTime> maybeAt = item.getMetadata().flatMap(RsMd::getAt);
+        if (!maybeAt.isPresent()) item.getMetadata().map(rsMd1 -> rsMd1.withAt(listAt));
+
+        // merge item with latestItems
+        mergeItem(usResult, item);
+      }
+    } else {
+      logger.info("Skipping resourceList because {} <= {}: {}", listAt, getAsOfDateTime(), usResult);
     }
   }
 
   private void analyzeChangeList(Result<Urlset> usResult) {
-    countChangeLists++;
+
 
     Urlset changelist = usResult.getContent().orElse(null);
     ZonedDateTime listFrom;
@@ -353,39 +376,45 @@ public class SitemapCollector {
       return;
     }
 
-    // walk item list
-    for (UrlItem item : changelist.getItemList()) {
+    if (listFrom.isAfter(getAsOfDateTime())) {
+      countChangeLists++;
 
-      // set rs:datetime on item if not present
-      Optional<ZonedDateTime> dateTime = item.getMetadata().flatMap(RsMd::getDateTime);
-      if (!dateTime.isPresent()) item.getMetadata().map(rsMd1 -> rsMd1.withFrom(listFrom));
+      // walk item list
+      for (UrlItem item : changelist.getItemList()) {
 
-      // keep count of changes
-      Optional<String> maybeChange = item.getMetadata().flatMap(RsMd::getChange);
-      if (maybeChange.isPresent()) {
-        String change = maybeChange.get();
-        if (CH_CREATED.equalsIgnoreCase(change)) {
-          countCreated++;
-        } else if (CH_UPDATED.equalsIgnoreCase(change)) {
-          countUpdated++;
-        } else if (CH_DELETED.equalsIgnoreCase(change)) {
-          countDeleted++;
+        // set rs:datetime on item if not present
+        Optional<ZonedDateTime> dateTime = item.getMetadata().flatMap(RsMd::getDateTime);
+        if (!dateTime.isPresent()) item.getMetadata().map(rsMd1 -> rsMd1.withFrom(listFrom));
+
+        // keep count of changes
+        Optional<String> maybeChange = item.getMetadata().flatMap(RsMd::getChange);
+        if (maybeChange.isPresent()) {
+          String change = maybeChange.get();
+          if (CH_CREATED.equalsIgnoreCase(change)) {
+            countCreated++;
+          } else if (CH_UPDATED.equalsIgnoreCase(change)) {
+            countUpdated++;
+          } else if (CH_DELETED.equalsIgnoreCase(change)) {
+            countDeleted++;
+          } else {
+            usResult.addError(
+              new RemoteResourceSyncFrameworkException("Unrecognized md:change attribute on changeList: " + change));
+            errorResults.add(usResult);
+            logger.warn("Unrecognized md:change attribute on changeList '{} : {}", change, usResult);
+            return;
+          }
         } else {
-          usResult.addError(
-            new RemoteResourceSyncFrameworkException("Unrecognized md:change attribute on changeList: " + change));
+          usResult.addError(new RemoteResourceSyncFrameworkException("Missing required md:change attribute on changeList"));
           errorResults.add(usResult);
-          logger.warn("Unrecognized md:change attribute on changeList '{} : {}", change, usResult);
+          logger.warn("Missing required md:change attribute on changeList: {}", usResult);
           return;
         }
-      } else {
-        usResult.addError(new RemoteResourceSyncFrameworkException("Missing required md:change attribute on changeList"));
-        errorResults.add(usResult);
-        logger.warn("Missing required md:change attribute on changeList: {}", usResult);
-        return;
-      }
 
-      // merge item with latestItems
-      mergeItem(usResult, item);
+        // merge item with latestItems
+        mergeItem(usResult, item);
+      }
+    } else {
+      logger.info("Skipping changeList because {} <= {}: {}", listFrom, getAsOfDateTime(), usResult);
     }
   }
 
