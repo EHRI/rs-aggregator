@@ -6,7 +6,10 @@ import nl.knaw.dans.rs.aggregator.xml.UrlItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
@@ -15,6 +18,33 @@ import java.util.Optional;
  * Created on 2017-04-15 14:36.
  */
 public class SyncWorker implements RsConstants {
+
+  private static final String CN = SyncWorker.class.getSimpleName() + ".";
+
+  public static final String PROP_SYNC_START = CN + "z1.sync.start";
+  public static final String PROP_SYNC_END = CN + "z2.sync.end";
+
+  public static final String PROP_MAX_DOWNLOADS = CN + "a1.max.downloads";
+  public static final String PROP_MAX_DOWNLOAD_RETRY = CN + "a2.max.download.retry";
+  public static final String PROP_TRIAL_RUN = CN + "a3.trial.run";
+  public static final String PROP_SITEMAP_COLLECTOR = CN + "class.sitemap.collector";
+  public static final String PROP_RESOURCE_MANAGER = CN + "class.resource.manager";
+  public static final String PROP_VERIFICATION_POLICY = CN + "class.verification.policy";
+
+  public static final String PROP_TOTAL_ITEMS = CN + "total.items";
+  public static final String PROP_ITEMS_VERIFIED = CN + "items.verified";
+  public static final String PROP_ITEMS_DELETED = CN + "items.deleted";
+  public static final String PROP_ITEMS_CREATED = CN + "items.created";
+  public static final String PROP_ITEMS_UPDATED = CN + "items.updated";
+  public static final String PROP_ITEMS_REMAIN = CN + "items.remain";
+  public static final String PROP_ITEMS_NO_ACTION = CN + "items.no.action";
+  public static final String PROP_TOTAL_FAILED_ITEMS = CN + "total.failed.items";
+  public static final String PROP_FAILED_DELETIONS = CN + "failed.deletions";
+  public static final String PROP_FAILED_CREATIONS = CN + "failed.creations";
+  public static final String PROP_FAILED_UPDATES = CN + "failed.updates";
+  public static final String PROP_FAILED_REMAINS = CN + "failed.remains";
+
+  public static final String PROP_TOTAL_DOWNLOAD_COUNT = CN + "total.download.count";
 
   private final static Logger logger = LoggerFactory.getLogger(SyncWorker.class);
 
@@ -110,10 +140,11 @@ public class SyncWorker implements RsConstants {
     return this;
   }
 
-  public void synchronize(PathFinder pathFinder) {
+  public void synchronize(PathFinder pathFinder, SyncProperties syncProps) {
     reset();
     getResourceManager().setPathFinder(pathFinder);
-    syncLocalResources(pathFinder);
+    syncLocalResources(pathFinder, syncProps);
+    report(pathFinder, syncProps);
   }
 
   private void reset() {
@@ -135,9 +166,9 @@ public class SyncWorker implements RsConstants {
     downloadCount = 0;
   }
 
-  private void syncLocalResources(PathFinder pathFinder) {
+  private void syncLocalResources(PathFinder pathFinder, SyncProperties syncProps) {
     SitemapCollector collector = getSitemapCollector();
-    collector.collectSitemaps(pathFinder);
+    collector.collectSitemaps(pathFinder, syncProps);
     if (collector.hasErrors()) {
       logger.warn("Not synchronizing because of previous {} errors: {}",
         collector.countErrors(), pathFinder.getCapabilityListUri());
@@ -279,4 +310,45 @@ public class SyncWorker implements RsConstants {
       verified, stHash, stLastMod, stSize, normalizedURI);
     return verified;
   }
+
+  private void report(PathFinder pathFinder, SyncProperties syncProps) {
+    ZonedDateTime syncEnd = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
+
+    syncProps.setDateTime(PROP_SYNC_START, pathFinder.getSyncStart());
+    syncProps.setDateTime(PROP_SYNC_END, syncEnd);
+
+    syncProps.setInt(PROP_MAX_DOWNLOADS, getMaxDownloads());
+    syncProps.setInt(PROP_MAX_DOWNLOAD_RETRY, getMaxDownloadRetry());
+    syncProps.setBool(PROP_TRIAL_RUN, isTrialRun());
+    syncProps.setProperty(PROP_SITEMAP_COLLECTOR, getSitemapCollector().getClass().getName());
+    syncProps.setProperty(PROP_RESOURCE_MANAGER, getResourceManager().getClass().getName());
+    syncProps.setProperty(PROP_VERIFICATION_POLICY, getVerificationPolicy().getClass().getName());
+
+    syncProps.setInt(PROP_TOTAL_ITEMS, itemCount);
+    syncProps.setInt(PROP_ITEMS_VERIFIED, verifiedItems);
+    syncProps.setInt(PROP_ITEMS_DELETED, itemsDeleted);
+    syncProps.setInt(PROP_ITEMS_CREATED, itemsCreated);
+    syncProps.setInt(PROP_ITEMS_UPDATED, itemsUpdated);
+    syncProps.setInt(PROP_ITEMS_REMAIN, itemsRemain);
+    syncProps.setInt(PROP_ITEMS_NO_ACTION, itemsNoAction);
+    int failures = failedCreations + failedUpdates + failedDeletions + failedRemains;
+    syncProps.setInt(PROP_TOTAL_FAILED_ITEMS, failures);
+    syncProps.setInt(PROP_FAILED_DELETIONS, failedDeletions);
+    syncProps.setInt(PROP_FAILED_CREATIONS, failedCreations);
+    syncProps.setInt(PROP_FAILED_UPDATES, failedUpdates);
+    syncProps.setInt(PROP_FAILED_REMAINS, failedRemains);
+
+    syncProps.setInt(PROP_TOTAL_DOWNLOAD_COUNT, downloadCount);
+
+    try {
+      File file = pathFinder.getSyncPropXmlFile();
+      String lsb = "Last saved by " + this.getClass().getName();
+      syncProps.storeToXML(file, lsb);
+      logger.debug("Saved SyncWorker properties to {}", file);
+    } catch (IOException e) {
+      logger.error("Could not save syncProps", e);
+      throw new RuntimeException(e);
+    }
+  }
+
 }

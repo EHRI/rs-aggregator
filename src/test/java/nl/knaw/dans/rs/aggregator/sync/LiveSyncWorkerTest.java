@@ -26,27 +26,15 @@ public class LiveSyncWorkerTest {
   @Test
   public void testSynchronize() throws Exception {
     PathFinder pathFinder = new PathFinder(baseDirectory, URI.create(capabilityListUrl));
-
+    SyncProperties syncProps = new SyncProperties();
     SyncWorker syncWorker = new SyncWorker()
       .withMaxDownloadRetry(3)
       .withTrialRun(false)
-      .withMaxDownloads(1000)
+      //.withMaxDownloads(1000)
       .withSitemapCollector(new SitemapCollector())
       .withResourceManager(new FsResourceManager());
 
-      syncWorker.synchronize(pathFinder);
-
-//    System.out.println("\nRESOURCE ITEMS " + synchronizer.getResourceItems().size());
-//    //synchronizer.getResourceItems().keySet().forEach(System.out::println);
-//    System.out.println("\nCREATED ITEMS");
-//    synchronizer.getCreatedItems().keySet().forEach(System.out::println);
-//    System.out.println("\nUPDATED ITEMS");
-//    synchronizer.getUpdatedItems().keySet().forEach(System.out::println);
-//    System.out.println("\nDELETED ITEMS");
-//    synchronizer.getDeletedItems().keySet().forEach(System.out::println);
-//    System.out.println();
-//    System.out.println(synchronizer.getUltimateResourceListAt());
-//    System.out.println(synchronizer.getUltimateChangeListFrom());
+      syncWorker.synchronize(pathFinder, syncProps);
 
   }
 }

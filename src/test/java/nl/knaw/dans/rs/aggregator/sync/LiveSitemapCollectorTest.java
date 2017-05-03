@@ -5,6 +5,7 @@ import nl.knaw.dans.rs.aggregator.http.Testing;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
 import java.net.URI;
 import java.time.ZonedDateTime;
 
@@ -17,7 +18,7 @@ import static org.junit.Assume.assumeTrue;
  */
 public class LiveSitemapCollectorTest {
 
-  private static String baseDirectory = "target/test-output/synchronizer";
+  private static String baseDirectory = "target/test-output/sitemapcollector";
   private static String capabilityListUrl = "http://zandbak11.dans.knaw.nl/ehri2/mdx/capabilitylist.xml";
 
   @BeforeClass
@@ -28,10 +29,12 @@ public class LiveSitemapCollectorTest {
   @Test
   public void testCollectSitemaps() throws Exception {
     PathFinder pathFinder = new PathFinder(baseDirectory, URI.create(capabilityListUrl));
+    SyncProperties syncProps = new SyncProperties();
     SitemapCollector collector = new SitemapCollector();
       //.withAsOfDateTime(ZonedDateTime.now());
     //collector.collectSitemaps();
-    collector.collectSitemaps(pathFinder);
+    collector.collectSitemaps(pathFinder, syncProps);
     assertThat(collector.getCountCapabilityLists(), is(1));
+
   }
 }

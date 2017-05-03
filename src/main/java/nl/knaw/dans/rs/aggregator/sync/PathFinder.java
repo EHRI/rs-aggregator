@@ -1,6 +1,7 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
 import nl.knaw.dans.rs.aggregator.util.NormURI;
+import nl.knaw.dans.rs.aggregator.util.ZonedDateTimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +21,11 @@ public class PathFinder {
 
   public static final String DIR_METADATA = "__MOR__";
   public static final String DIR_RESOURCES = "__SOR__";
+  public static final String DIR_SYNC_PROPS = "__SYNC_PROPS__";
 
   private static Logger logger = LoggerFactory.getLogger(PathFinder.class);
 
-  private final ZonedDateTime operationDateTime;
+  private final ZonedDateTime syncStart;
 
   private final String host;
   private final int port;
@@ -35,11 +37,13 @@ public class PathFinder {
   private final File setDirectory;
   private final File metadataDirectory;
   private final File resourceDirectory;
+  private final File syncPropDirectory;
+  private final File syncPropXmlFile;
   private final File capabilityListFile;
 
   public PathFinder(@Nonnull String baseDirectory, @Nonnull URI capabilityListUri) {
     this.capabilityListUri = capabilityListUri;
-    operationDateTime = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
+    syncStart = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
     File baseDir = new File(baseDirectory);
     this.baseDirectory = baseDir.getAbsoluteFile();
 
@@ -61,8 +65,15 @@ public class PathFinder {
     metadataDirectory = new File(setDirectory, DIR_METADATA);
     resourceDirectory = new File(setDirectory, DIR_RESOURCES);
     capabilityListFile = new File(metadataDirectory, fileName);
+    syncPropDirectory = new File(setDirectory, DIR_SYNC_PROPS);
+    String syncDate = ZonedDateTimeUtil.toFileSaveFormat(syncStart);
+    syncPropXmlFile = new File(syncPropDirectory, syncDate + ".xml");
 
-    logger.info("Created path finder with operationDateTime {}", operationDateTime);
+    logger.info("Created path finder with syncStart {}", syncStart);
+  }
+
+  public ZonedDateTime getSyncStart() {
+    return syncStart;
   }
 
   public String getHost() {
@@ -95,6 +106,14 @@ public class PathFinder {
 
   public File getResourceDirectory() {
     return resourceDirectory;
+  }
+
+  public File getSyncPropDirectory() {
+    return syncPropDirectory;
+  }
+
+  public File getSyncPropXmlFile() {
+    return syncPropXmlFile;
   }
 
   public File getCapabilityListFile() {

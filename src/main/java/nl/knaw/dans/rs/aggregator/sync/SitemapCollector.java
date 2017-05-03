@@ -47,19 +47,43 @@ import java.util.Set;
  */
 public class SitemapCollector implements RsConstants {
 
+  private static final String CN = SitemapCollector.class.getSimpleName() + ".";
+  public static final String PROP_AS_OF_DATE_TIME = CN + "a1.as.of.date.time";
+  public static final String PROP_CONVERTER = CN + "a2.converter";
+
+  public static final String PROP_COUNT_INVALID_URIS = CN + "cr.invalid.uris";
+  public static final String PROP_COUNT_ERROR_RESULTS = CN + "cr.error.results";
+  public static final String PROP_COUNT_UNHNDLED_RESULTS = CN + "cr.unhandled.results";
+
+  public static final String PROP_COUNT_CAPABILITY_LISTS = CN + "cl.capability.lists";
+  public static final String PROP_COUNT_RESOURCELIST_INDEXES = CN + "cl.resource.list.indexes";
+  public static final String PROP_COUNT_CHANGELIST_INDEXES = CN + "cl.change.list.indexes";
+  public static final String PROP_COUNT_RESOURCELISTS = CN + "cl.resource.lists";
+  public static final String PROP_COUNT_CHANGELISTS = CN + "cl.change.lists";
+
+  public static final String PROP_DATE_LATEST_RESOURCELIST = CN + "date.latest.resource.list";
+  public static final String PROP_DATE_LATEST_CHANGELIST = CN + "date.latest.change.list";
+
+  public static final String PROP_ITEMS_RECENT = CN + "items.recent";
+  public static final String PROP_ITEMS_REMAINING = CN + "items.remaining";
+  public static final String PROP_ITEMS_CREATED = CN + "items.created";
+  public static final String PROP_ITEMS_UPDATED = CN + "items.updated";
+  public static final String PROP_ITEMS_DELETED = CN + "items.deleted";
+
   private static Logger logger = LoggerFactory.getLogger(SitemapCollector.class);
 
   private CloseableHttpClient httpClient;
   private ResourceSyncContext rsContext;
 
-  private PathFinder pathFinder;
-
   private ZonedDateTime asOfDateTime;
+  private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> converter;
+
+  private PathFinder currentPathFinder;
 
   private Set<String> invalidUris;
   private List<Result<?>> errorResults;
   private List<Result<?>> unhandledResults;
-  private Map<URI, UrlItem> latestItems;
+  private Map<URI, UrlItem> recentItems;
   private ZonedDateTime ultimateResourceListAt;
   private ZonedDateTime ultimateChangeListFrom;
 
@@ -77,11 +101,6 @@ public class SitemapCollector implements RsConstants {
   private boolean collected;
 
   public SitemapCollector() {
-  }
-
-  private PathFinder getPathFinder() {
-    if (pathFinder == null) throw new IllegalStateException("Missing PathFinder. No PathFinder was set.");
-    return pathFinder;
   }
 
   public CloseableHttpClient getHttpClient() {
@@ -121,6 +140,18 @@ public class SitemapCollector implements RsConstants {
 
   public SitemapCollector withAsOfDateTime(ZonedDateTime asOfDateTime) {
     this.asOfDateTime = asOfDateTime;
+    return this;
+  }
+
+  public LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> getConverter() {
+    if (converter == null) {
+      converter = fileSavingConverter;
+    }
+    return converter;
+  }
+
+  public SitemapCollector withConverter(LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> converter) {
+    this.converter = converter;
     return this;
   }
 
@@ -215,14 +246,14 @@ public class SitemapCollector implements RsConstants {
 
   public Map<URI, UrlItem> getMostRecentItems() {
     if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
-    return latestItems;
+    return recentItems;
   }
 
-  public void collectSitemaps(PathFinder pathFinder) {
-    this.pathFinder = pathFinder;
+  public void collectSitemaps(PathFinder pathFinder, SyncProperties syncProps) {
     reset();
+    currentPathFinder = pathFinder;
     RsExplorer explorer = new RsExplorer(getHttpClient(), getRsContext())
-      .withConverter(fileSavingConverter)
+      .withConverter(getConverter())
       .withFollowChildLinks(true)
       .withFollowIndexLinks(false)
       .withFollowParentLinks(false);
@@ -238,15 +269,50 @@ public class SitemapCollector implements RsConstants {
         errorResults.add(result);
       } else {
         analyze(result);
+        collected = true;
       }
     }
-    collected = true;
+    reportResults(pathFinder, syncProps);
+    currentPathFinder = null;
+  }
+
+  private void reportResults(PathFinder pathFinder, SyncProperties syncProps) {
+    syncProps.setDateTime(PROP_AS_OF_DATE_TIME, asOfDateTime);
+    syncProps.setProperty(PROP_CONVERTER, getConverter().toString());
+    syncProps.setInt(PROP_COUNT_INVALID_URIS, invalidUris.size());
+    syncProps.setInt(PROP_COUNT_ERROR_RESULTS, errorResults.size());
+    syncProps.setInt(PROP_COUNT_UNHNDLED_RESULTS, unhandledResults.size());
+
+    syncProps.setInt(PROP_COUNT_CAPABILITY_LISTS, countCapabilityLists);
+    syncProps.setInt(PROP_COUNT_RESOURCELIST_INDEXES, countResourceListIndexes);
+    syncProps.setInt(PROP_COUNT_CHANGELIST_INDEXES, countChangelistIndexes);
+    syncProps.setInt(PROP_COUNT_RESOURCELISTS, countResourceLists);
+    syncProps.setInt(PROP_COUNT_CHANGELISTS, countChangeLists);
+
+    syncProps.setDateTime(PROP_DATE_LATEST_RESOURCELIST, ultimateResourceListAt);
+    syncProps.setDateTime(PROP_DATE_LATEST_CHANGELIST, ultimateChangeListFrom);
+
+    syncProps.setInt(PROP_ITEMS_RECENT, recentItems.size());
+    syncProps.setInt(PROP_ITEMS_REMAINING, countRemain);
+    syncProps.setInt(PROP_ITEMS_CREATED, countCreated);
+    syncProps.setInt(PROP_ITEMS_UPDATED, countUpdated);
+    syncProps.setInt(PROP_ITEMS_DELETED, countDeleted);
+
+    try {
+      File file = pathFinder.getSyncPropXmlFile();
+      String lsb = "Last saved by " + this.getClass().getName();
+      syncProps.storeToXML(file, lsb);
+      logger.debug("Saved SitemapCollector properties to {}", file);
+    } catch (IOException e) {
+      logger.error("Could not save syncProps", e);
+      throw new RuntimeException(e);
+    }
   }
 
   private void reset() {
     errorResults = new ArrayList<>();
     unhandledResults = new ArrayList<>();
-    latestItems = new HashMap<>();
+    recentItems = new HashMap<>();
 
     countCapabilityLists = 0;
     countResourceListIndexes = 0;
@@ -350,7 +416,7 @@ public class SitemapCollector implements RsConstants {
         Optional<ZonedDateTime> maybeAt = item.getMetadata().flatMap(RsMd::getAt);
         if (!maybeAt.isPresent()) item.getMetadata().map(rsMd1 -> rsMd1.withAt(listAt));
 
-        // merge item with latestItems
+        // merge item with recentItems
         mergeItem(usResult, item);
       }
     } else {
@@ -410,7 +476,7 @@ public class SitemapCollector implements RsConstants {
           return;
         }
 
-        // merge item with latestItems
+        // merge item with recentItems
         mergeItem(usResult, item);
       }
     } else {
@@ -421,12 +487,17 @@ public class SitemapCollector implements RsConstants {
   private void mergeItem(Result<Urlset> usResult, UrlItem item) {
     Optional<URI> maybeUri = NormURI.normalize(item.getLoc());
     if (maybeUri.isPresent()) {
-      latestItems.merge(maybeUri.get(), item, UrlItem::latest);
+      recentItems.merge(maybeUri.get(), item, UrlItem::latest);
     } else {
       usResult.addError(new RemoteResourceSyncFrameworkException("Missing required loc element on urlItem"));
       errorResults.add(usResult);
       logger.warn("Missing required loc element on urlItem: {}", usResult);
     }
+  }
+
+  private PathFinder getCurrentPathFinder() {
+    if (currentPathFinder == null) throw new IllegalStateException("No current PathFinder");
+    return currentPathFinder;
   }
 
   private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception>
@@ -435,7 +506,7 @@ public class SitemapCollector implements RsConstants {
     HttpEntity entity = response.getEntity();
     RsRoot rsRoot = null;
     if (entity != null) {
-      File file = getPathFinder().findMetadataFilePath(uri);
+      File file = getCurrentPathFinder().findMetadataFilePath(uri);
       File directoryPath = file.getParentFile();
       if (directoryPath.mkdirs()) logger.debug("Created directory path {}", directoryPath);
       InputStream instream = entity.getContent();

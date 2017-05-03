@@ -1,5 +1,6 @@
 package nl.knaw.dans.rs.aggregator.util;
 
+import javax.annotation.Nonnull;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -38,7 +39,16 @@ public class ZonedDateTimeUtil {
     .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
     .toFormatter();
 
-  public static ZonedDateTime fromXmlString(String value) throws Exception {
+  private static DateTimeFormatter fileSaveFormat = new DateTimeFormatterBuilder()
+    .appendPattern("yyyyMMdd'T'HHmmss")
+    .parseDefaulting(ChronoField.MONTH_OF_YEAR, 1)
+    .parseDefaulting(ChronoField.DAY_OF_MONTH, 1)
+    .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+    .appendFraction(ChronoField.NANO_OF_SECOND, 3, 3, false)
+    .appendZoneId()
+    .toFormatter();
+
+  public static ZonedDateTime fromXmlString(String value) {
     if (value == null) {
       return null;
     }
@@ -51,11 +61,12 @@ public class ZonedDateTimeUtil {
     }
   }
 
-  public static String toXmlString(ZonedDateTime value) throws Exception {
+  public static String toXmlString(ZonedDateTime value) {
     if (value == null) {
       return null;
     }
-    return value.toString();
+    ZonedDateTime utc = value.withZoneSameInstant(ZoneOffset.UTC);
+    return utc.toString();
   }
 
   public static ZonedDateTime fromLong(long value) {
@@ -65,5 +76,13 @@ public class ZonedDateTimeUtil {
 
   public static long toLong(ZonedDateTime value) {
     return Date.from(value.toInstant()).getTime();
+  }
+
+  public static String toFileSaveFormat(@Nonnull ZonedDateTime zdt) {
+    return zdt.format(fileSaveFormat);
+  }
+
+  public static ZonedDateTime fromFileSaveFormat(@Nonnull String value) {
+    return ZonedDateTime.parse(value, fileSaveFormat);
   }
 }
