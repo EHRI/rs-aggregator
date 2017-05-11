@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- sitemap-converter-provider is an implementation of nl.knaw.dans.rs.aggregator.sync.SitemapConverterProvider -->
+    <bean id="sitemap-converter-provider" class="nl.knaw.dans.rs.aggregator.sync.FsSitemapConverterProvider"/>
+
+    <!-- verification-policy is an implementation of nl.knaw.dans.rs.aggregator.sync.VerificationPolicy -->
+    <bean id="verification-policy" class="nl.knaw.dans.rs.aggregator.sync.DefaultVerificationPolicy"/>
+
+    <!-- resource-manager is an implementation of nl.knaw.dans.rs.aggregator.sync.ResourceManager -->
+    <bean id="resource-manager" class="nl.knaw.dans.rs.aggregator.sync.FsResourceManager"/>
+
+    <!-- Main class for synchronization -->
+    <bean id="sync-master" class="nl.knaw.dans.rs.aggregator.sync.SyncMaster">
+        <property name="sitemapConverterProvider" ref="sitemap-converter-provider"/>
+        <property name="verificationPolicy" ref="verification-policy"/>
+        <property name="resourceManager" ref="resource-manager"/>
+        <!-- Location of file with list of uri's, each line contains a capability list uri -->
+        <property name="uriListLocation" value="src/test/resources/uri-list.txt"/>
+        <!-- Location of directory that will contain synchronized resources and metadata -->
+        <property name="baseDirectory" value="target/test-output/syncapp-context"/>
+    </bean>
+
+    <!-- Choose and configure a run-scheduler (or roll your own) -->
+    <?Description RunOnceScheduler will run synchronisation once and quit ?>
+    <!--<bean id="run-scheduler" class="nl.knaw.dans.rs.aggregator.sync.RunOnceScheduler"/>-->
+
+    <?Description RunWithFixedDelay will run synchronisation repeatedly
+            with fixed delay between end and start of successive runs. ?>
+    <!--<bean id="run-scheduler" class="nl.knaw.dans.rs.aggregator.sync.RunWithFixedDelay">
+        <?Description After maxErrorCount errors have been caught the service will exit. Default=3 ?>
+        <property name="maxErrorCount" value="3"/>
+        <?Description Delay between successive synchronisation runs in minutes. Default=60 ?>
+        <property name="delay" value="2"/>
+    </bean>-->
+
+    <bean id="run-scheduler" class="nl.knaw.dans.rs.aggregator.sync.RunAtFixedRate">
+        <?Description after maxErrorCount errors have been caught the service will exit. Default=3 ?>
+        <property name="maxErrorCount" value="3"/>
+        <?Description Time in minutes between start of synchronisation runs. Default=60 ?>
+        <property name="period" value="1440"/>
+        <property name="startHour" value="14"/>
+        <property name="startMinute" value="40"/>
+    </bean>
+
+
+</beans>

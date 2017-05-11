@@ -145,7 +145,7 @@ public class SitemapCollector implements RsConstants {
 
   public LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> getConverter() {
     if (converter == null) {
-      converter = fileSavingConverter;
+      throw new IllegalStateException("No converter set");
     }
     return converter;
   }
@@ -500,47 +500,5 @@ public class SitemapCollector implements RsConstants {
     return currentPathFinder;
   }
 
-  private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception>
-    fileSavingConverter = (uri, response) -> {
 
-    HttpEntity entity = response.getEntity();
-    RsRoot rsRoot = null;
-    if (entity != null) {
-      File file = getCurrentPathFinder().findMetadataFilePath(uri);
-      File directoryPath = file.getParentFile();
-      if (directoryPath.mkdirs()) logger.debug("Created directory path {}", directoryPath);
-      InputStream instream = entity.getContent();
-      boolean saved = saveFile(instream, file);
-      if (saved) {
-        logger.debug("Saved {} --> {}", uri, file);
-        Header lmh = response.getFirstHeader("Last-Modified");
-        if (lmh != null) {
-          Date date = DateUtils.parseDate(lmh.getValue());
-          if (file.setLastModified(date.getTime())) logger.debug("Last modified from remote: {} on {}", date, file);
-        }
-        rsRoot = new RsBuilder(getRsContext()).setFile(file).build().orElse(null);
-        if (rsRoot != null) {
-          logger.debug("Collected sitemap with capability {} from {}", rsRoot.getCapability(), uri);
-        }
-      }
-    }
-    return rsRoot;
-  };
-
-  private boolean saveFile(InputStream instream, File file) throws IOException {
-    boolean saved = false;
-    OutputStream outstream = new FileOutputStream(file);
-    byte[] buffer = new byte[8 * 1024];
-    int bytesRead;
-    try {
-      while ((bytesRead = instream.read(buffer)) != -1) {
-        outstream.write(buffer, 0, bytesRead);
-      }
-      saved = true;
-    } finally {
-      IOUtils.closeQuietly(instream);
-      IOUtils.closeQuietly(outstream);
-    }
-    return saved;
-  }
 }
