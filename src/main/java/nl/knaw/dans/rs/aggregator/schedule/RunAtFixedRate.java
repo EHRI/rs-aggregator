@@ -77,7 +77,7 @@ public class RunAtFixedRate implements JobScheduler {
     logger.info("Starting job execution in {} minutes at {}.", initialDelay, next);
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    Runnable syncer = () -> {
+    Runnable jobRunner = () -> {
       runCounter++;
       next = next.plusMinutes(period);
       logger.info(">>>>>>>>>> Starting job execution #{} on {}.", runCounter, job.getClass().getName());
@@ -100,7 +100,7 @@ public class RunAtFixedRate implements JobScheduler {
         logger.info("Next job execution will start at {}", next);
       }
     };
-    scheduler.scheduleAtFixedRate(syncer, initialDelay, period, TimeUnit.MINUTES);
+    scheduler.scheduleAtFixedRate(jobRunner, initialDelay, period, TimeUnit.MINUTES);
 
     // Watch the file system for a file named 'stop'
     ScheduledExecutorService watch = Executors.newScheduledThreadPool(1);

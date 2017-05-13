@@ -43,7 +43,7 @@ public class RunWithFixedDelay implements JobScheduler {
     logger.info("Started {} with job {}", this.getClass().getName(), job.getClass().getName());
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    Runnable syncer = () -> {
+    Runnable jobRunner = () -> {
       runCounter++;
       logger.info(">>>>>>>>>> Starting job execution #{} on {}", runCounter, job.getClass().getName());
       try {
@@ -65,7 +65,7 @@ public class RunWithFixedDelay implements JobScheduler {
         logger.info("Next job execution will start in {} minutes.", delay);
       }
     };
-    scheduler.scheduleWithFixedDelay(syncer, 0, delay, TimeUnit.MINUTES);
+    scheduler.scheduleWithFixedDelay(jobRunner, 0, delay, TimeUnit.MINUTES);
 
     // Watch the file system for a file named 'stop'
     ScheduledExecutorService watch = Executors.newScheduledThreadPool(1);
