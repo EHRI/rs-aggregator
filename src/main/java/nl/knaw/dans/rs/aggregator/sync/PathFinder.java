@@ -69,7 +69,7 @@ public class PathFinder {
     String syncDate = ZonedDateTimeUtil.toFileSaveFormat(syncStart);
     syncPropXmlFile = new File(syncPropDirectory, syncDate + ".xml");
 
-    logger.info("Created path finder with syncStart {}", syncStart);
+    logger.info("Created path finder with syncStart {} for {}", syncStart, capabilityListUri);
   }
 
   public ZonedDateTime getSyncStart() {

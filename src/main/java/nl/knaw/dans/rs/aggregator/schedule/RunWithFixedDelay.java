@@ -1,4 +1,4 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.schedule;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,23 +9,18 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created on 2017-05-09 13:12.
+ * A JobScheduler that executes its {@link Job} with a fixed delay between successive executions.
  */
-public class RunWithFixedDelay implements RunScheduler {
+public class RunWithFixedDelay implements JobScheduler {
 
   private static Logger logger = LoggerFactory.getLogger(RunWithFixedDelay.class);
 
   private int runCounter;
   private int errorCounter;
   private int maxErrorCount = 3;
-  private SyncMaster syncMaster;
+
   private int delay = 60;
   private boolean stop;
-
-  @Override
-  public void setSyncMaster(SyncMaster syncMaster) {
-    this.syncMaster = syncMaster;
-  }
 
   public int getMaxErrorCount() {
     return maxErrorCount;
@@ -44,30 +39,30 @@ public class RunWithFixedDelay implements RunScheduler {
   }
 
   @Override
-  public void start() throws Exception {
-    logger.info("Started {}", this.getClass().getName());
+  public void schedule(Job job) throws Exception {
+    logger.info("Started {} with job {}", this.getClass().getName(), job.getClass().getName());
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     Runnable syncer = () -> {
       runCounter++;
-      logger.info("######### Starting synchronisation run #{}", runCounter);
+      logger.info(">>>>>>>>>> Starting job execution #{} on {}", runCounter, job.getClass().getName());
       try {
-        syncMaster.readListAndSynchronize();
+        job.execute();
       } catch (Exception e) {
         errorCounter++;
-        logger.error("Premature end of synchronisation run #{}. error count={}", runCounter, errorCounter, e);
+        logger.error("Premature end of job execution #{}. error count={}", runCounter, errorCounter, e);
         if (errorCounter >= maxErrorCount) {
           logger.info("Stopping application because errorCount >= {}", maxErrorCount);
           System.exit(-1);
         }
       }
-      logger.info("#########   End of synchronisation run #{}", runCounter);
+      logger.info("<<<<<<<<<<   End of job execution #{} on {}", runCounter, job.getClass().getName());
       if (stop) {
-        logger.info("######### Stopped application at synchronisation run #{}, because file named 'stop' was found.",
+        logger.info("Stopped application at job execution #{}, because file named 'stop' was found.",
           runCounter);
       } else {
         logger.info("# touch stop - to stop this service gracefully.");
-        logger.info("Next synchronisation will start in {} minutes.", delay);
+        logger.info("Next job execution will start in {} minutes.", delay);
       }
     };
     scheduler.scheduleWithFixedDelay(syncer, 0, delay, TimeUnit.MINUTES);
@@ -77,7 +72,7 @@ public class RunWithFixedDelay implements RunScheduler {
     Runnable watcher = () -> {
       if (new File("stop").exists()) {
         stop = true;
-        logger.info("######### Stopping application at synchronisation run #{}, because file named 'stop' was found.",
+        logger.info("Stopping scheduler after job execution #{}, because file named 'stop' was found.",
           runCounter);
         scheduler.shutdown();
         watch.shutdown();

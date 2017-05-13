@@ -1,10 +1,9 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.schedule;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -13,26 +12,20 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Created on 2017-05-08 16:34.
+ * A JobScheduler that executes its {@link Job} repeatedly at a fixed time.
  */
-public class RunAtFixedRate implements RunScheduler {
+public class RunAtFixedRate implements JobScheduler {
 
   private static Logger logger = LoggerFactory.getLogger(RunAtFixedRate.class);
 
   private int runCounter;
   private int errorCounter;
   private int maxErrorCount = 3;
-  private SyncMaster syncMaster;
   private int period = 60;
-  private int startHour;
-  private int startMinute;
+  private int hourOfDay;
+  private int minuteOfHour;
   private boolean stop;
   private ZonedDateTime next;
-
-  @Override
-  public void setSyncMaster(SyncMaster syncMaster) {
-    this.syncMaster = syncMaster;
-  }
 
   public int getMaxErrorCount() {
     return maxErrorCount;
@@ -47,59 +40,64 @@ public class RunAtFixedRate implements RunScheduler {
   }
 
   public void setPeriod(int period) {
+    if (period < 1) {
+      throw new IllegalArgumentException("Period cannot be less then 1 minute.");
+    }
     this.period = period;
   }
 
-  public int getStartHour() {
-    return startHour;
+  public int getHourOfDay() {
+    return hourOfDay;
   }
 
-  public void setStartHour(int startHour) {
-    this.startHour = startHour;
+  public void setHourOfDay(int hourOfDay) {
+    this.hourOfDay = hourOfDay;
   }
 
-  public int getStartMinute() {
-    return startMinute;
+  public int getMinuteOfHour() {
+    return minuteOfHour;
   }
 
-  public void setStartMinute(int startMinute) {
-    this.startMinute = startMinute;
+  public void setMinuteOfHour(int minuteOfHour) {
+    this.minuteOfHour = minuteOfHour;
   }
 
   @Override
-  public void start() throws Exception {
-    logger.info("Started {}", this.getClass().getName());
+  public void schedule(Job job) throws Exception {
+    logger.info("Started {} with job {}.", this.getClass().getName(), job.getClass().getName());
 
     ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-    ZonedDateTime start = now.withHour(startHour).withMinute(startMinute).withSecond(0).withNano(0);
-    if (start.isBefore(now)) start = start.plusDays(1);
+    ZonedDateTime start = now.withHour(hourOfDay).withMinute(minuteOfHour).withSecond(0).withNano(0);
+    while (start.isBefore(now)) {
+      start = start.plusMinutes(period);
+    }
 
     long initialDelay = ChronoUnit.MINUTES.between(now, start);
     next = start;
-    logger.info("######### Starting synchronisation at {}", next);
+    logger.info("Starting job execution in {} minutes at {}.", initialDelay, next);
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     Runnable syncer = () -> {
       runCounter++;
       next = next.plusMinutes(period);
-      logger.info("######### Starting synchronisation run #{}", runCounter);
+      logger.info(">>>>>>>>>> Starting job execution #{} on {}.", runCounter, job.getClass().getName());
       try {
-        syncMaster.readListAndSynchronize();
+        job.execute();
       } catch (Exception e) {
         errorCounter++;
-        logger.error("Premature end of synchronisation run #{}. error count={}", runCounter, errorCounter, e);
+        logger.error("Premature end of job execution #{}. error count={}", runCounter, errorCounter, e);
         if (errorCounter >= maxErrorCount) {
           logger.info("Stopping application because errorCount >= {}", maxErrorCount);
           System.exit(-1);
         }
       }
-      logger.info("#########   End of synchronisation run #{}", runCounter);
+      logger.info("<<<<<<<<<< End of job execution #{} on {}", runCounter, job.getClass().getName());
       if (stop) {
-        logger.info("######### Stopped application at synchronisation run #{}, because file named 'stop' was found.",
+        logger.info("Stopped application at synchronisation run #{}, because file named 'stop' was found.",
           runCounter);
       } else {
         logger.info("# touch stop - to stop this service gracefully.");
-        logger.info("Next synchronisation will start at {}", next);
+        logger.info("Next job execution will start at {}", next);
       }
     };
     scheduler.scheduleAtFixedRate(syncer, initialDelay, period, TimeUnit.MINUTES);
@@ -109,7 +107,7 @@ public class RunAtFixedRate implements RunScheduler {
     Runnable watcher = () -> {
       if (new File("stop").exists()) {
         stop = true;
-        logger.info("######### Stopping application at synchronisation run #{}, because file named 'stop' was found.",
+        logger.info("######### Stopping application after job execution #{}, because file named 'stop' was found.",
           runCounter);
         scheduler.shutdown();
         watch.shutdown();

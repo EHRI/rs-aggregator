@@ -1,5 +1,6 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
+import nl.knaw.dans.rs.aggregator.schedule.Job;
 import nl.knaw.dans.rs.aggregator.util.NormURI;
 import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -18,7 +19,7 @@ import java.util.Scanner;
 /**
  * Created on 2017-05-03 17:05.
  */
-public class SyncMaster {
+public class SyncMaster implements Job {
 
   private static Logger logger = LoggerFactory.getLogger(SyncMaster.class);
 
@@ -163,5 +164,10 @@ public class SyncMaster {
       syncWorker.synchronize(pathFinder, syncProps);
     }
 
+  }
+
+  @Override
+  public void execute() throws Exception {
+    readListAndSynchronize();
   }
 }
