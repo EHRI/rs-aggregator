@@ -1,7 +1,7 @@
 package nl.knaw.dans.rs.aggregator.schedule;
 
 /**
- * Created on 2017-05-08 16:14.
+ * A JobScheduler is capable of repeatedly executing a {@link Job} according to a schedule.
  */
 public interface JobScheduler {
 
