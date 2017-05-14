@@ -9,6 +9,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,6 +27,7 @@ public class RunAtFixedRate implements JobScheduler {
   private int minuteOfHour;
   private boolean stop;
   private ZonedDateTime next;
+  private ScheduledFuture scheduledFuture;
 
   public int getMaxErrorCount() {
     return maxErrorCount;
@@ -66,7 +68,9 @@ public class RunAtFixedRate implements JobScheduler {
   public void schedule(Job job) throws Exception {
     logger.info("Started {} with job {}.", this.getClass().getName(), job.getClass().getName());
 
-    ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+    final String home = new File(".").getAbsoluteFile().getParent();
+
+    ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC).withSecond(0).withNano(0);
     ZonedDateTime start = now.withHour(hourOfDay).withMinute(minuteOfHour).withSecond(0).withNano(0);
     while (start.isBefore(now)) {
       start = start.plusMinutes(period);
@@ -76,6 +80,7 @@ public class RunAtFixedRate implements JobScheduler {
     next = start;
     logger.info("Starting job execution in {} minutes at {}.", initialDelay, next);
 
+    ScheduledFuture sfuture = null;
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     Runnable jobRunner = () -> {
       runCounter++;
@@ -96,18 +101,27 @@ public class RunAtFixedRate implements JobScheduler {
         logger.info("Stopped application at synchronisation run #{}, because file named 'stop' was found.",
           runCounter);
       } else {
-        logger.info("# touch stop - to stop this service gracefully.");
-        logger.info("Next job execution will start at {}", next);
+        logger.info("delay={}", scheduledFuture.getDelay(TimeUnit.MINUTES));
+        logger.info("# touch {}/stop # - to stop this service gracefully.", home);
+        // in case execution takes longer then period, adjust next
+        ZonedDateTime rightnow = ZonedDateTime.now(ZoneOffset.UTC).withSecond(0).withNano(0);
+        if (next.isBefore(rightnow)) {
+          long excess = ChronoUnit.MINUTES.between(next, rightnow);
+          logger.warn("Job execution takes longer then period. Job execution exceeds {}-minute period with {} minutes.",
+            period, excess);
+        }
+        //
+        logger.info("Next job execution planned at {}", next);
       }
     };
-    scheduler.scheduleAtFixedRate(jobRunner, initialDelay, period, TimeUnit.MINUTES);
+    scheduledFuture = scheduler.scheduleAtFixedRate(jobRunner, initialDelay, period, TimeUnit.MINUTES);
 
     // Watch the file system for a file named 'stop'
     ScheduledExecutorService watch = Executors.newScheduledThreadPool(1);
     Runnable watcher = () -> {
       if (new File("stop").exists()) {
         stop = true;
-        logger.info("######### Stopping application after job execution #{}, because file named 'stop' was found.",
+        logger.info("Stopping scheduler after job execution #{}, because file named 'stop' was found.",
           runCounter);
         scheduler.shutdown();
         watch.shutdown();

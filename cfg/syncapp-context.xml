@@ -14,7 +14,7 @@
     <bean id="resource-manager" class="nl.knaw.dans.rs.aggregator.sync.FsResourceManager"/>
 
     <!-- Main class for synchronization -->
-    <bean id="sync-master" class="nl.knaw.dans.rs.aggregator.sync.SyncMaster">
+    <bean id="sync-job" class="nl.knaw.dans.rs.aggregator.sync.SyncJob">
         <property name="sitemapConverterProvider" ref="sitemap-converter-provider"/>
         <property name="verificationPolicy" ref="verification-policy"/>
         <property name="resourceManager" ref="resource-manager"/>

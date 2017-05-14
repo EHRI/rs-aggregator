@@ -41,6 +41,7 @@ public class RunWithFixedDelay implements JobScheduler {
   @Override
   public void schedule(Job job) throws Exception {
     logger.info("Started {} with job {}", this.getClass().getName(), job.getClass().getName());
+    final String home = new File(".").getAbsoluteFile().getParent();
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     Runnable jobRunner = () -> {
@@ -61,7 +62,7 @@ public class RunWithFixedDelay implements JobScheduler {
         logger.info("Stopped application at job execution #{}, because file named 'stop' was found.",
           runCounter);
       } else {
-        logger.info("# touch stop - to stop this service gracefully.");
+        logger.info("# touch {}/stop # - to stop this service gracefully.", home);
         logger.info("Next job execution will start in {} minutes.", delay);
       }
     };

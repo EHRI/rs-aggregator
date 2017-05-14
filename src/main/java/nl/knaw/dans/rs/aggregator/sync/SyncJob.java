@@ -19,9 +19,9 @@ import java.util.Scanner;
 /**
  * Created on 2017-05-03 17:05.
  */
-public class SyncMaster implements Job {
+public class SyncJob implements Job {
 
-  private static Logger logger = LoggerFactory.getLogger(SyncMaster.class);
+  private static Logger logger = LoggerFactory.getLogger(SyncJob.class);
 
   private CloseableHttpClient httpClient;
   private ResourceSyncContext rsContext;

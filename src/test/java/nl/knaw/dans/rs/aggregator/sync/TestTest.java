@@ -14,9 +14,9 @@ import java.util.concurrent.TimeUnit;
 public class TestTest {
 
   public static void main(String[] args) throws Exception {
-    //fixedRate();
+    fixedRate();
     //fixedDelay();
-    computestart();
+    //computestart();
   }
 
   private static void fixedDelay() {
@@ -43,7 +43,7 @@ public class TestTest {
     Runnable task = () -> {
       System.out.println("Scheduling: " + System.nanoTime() + " " + ZonedDateTime.now());
       try {
-        TimeUnit.SECONDS.sleep(1);
+        TimeUnit.SECONDS.sleep(5);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
@@ -51,7 +51,7 @@ public class TestTest {
     };
 
     int initialDelay = 0;
-    int period = 3;
+    int period = 8;
     executor.scheduleAtFixedRate(task, initialDelay, period, TimeUnit.SECONDS);
 
     ScheduledExecutorService watch = Executors.newScheduledThreadPool(1);
