@@ -7,10 +7,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
 import java.net.URI;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -39,6 +44,7 @@ public class PathFinder {
   private final File resourceDirectory;
   private final File syncPropDirectory;
   private final File syncPropXmlFile;
+  private final File prevSyncPropXmlFile;
   private final File capabilityListFile;
 
   public PathFinder(@Nonnull String baseDirectory, @Nonnull URI capabilityListUri) {
@@ -68,6 +74,32 @@ public class PathFinder {
     syncPropDirectory = new File(setDirectory, DIR_SYNC_PROPS);
     String syncDate = ZonedDateTimeUtil.toFileSaveFormat(syncStart);
     syncPropXmlFile = new File(syncPropDirectory, syncDate + ".xml");
+
+    File[] prevSyncProps = syncPropDirectory.listFiles(new FileFilter() {
+      @Override
+      public boolean accept(File pathname) {
+        boolean accepted = false;
+        String filename = pathname.getName();
+        if (filename.endsWith(".xml")) {
+          // only include fully synchronized runs.
+          SyncProperties syncProps = new SyncProperties();
+          try {
+            syncProps.loadFromXML(pathname);
+            accepted = syncProps.getBool(SyncProperties.PROP_SW_FULLY_SYNCHRONIZED);
+          } catch (IOException e) {
+            throw new RuntimeException("Could not read syncProps from " + pathname, e);
+          }
+        }
+        return accepted;
+      }
+    });
+    if (prevSyncProps != null && prevSyncProps.length > 0) {
+      List<File> prevSyncPropList = Arrays.asList(prevSyncProps);
+      Collections.sort(prevSyncPropList);
+      prevSyncPropXmlFile = prevSyncPropList.get(prevSyncPropList.size() -1);
+    } else {
+      prevSyncPropXmlFile = null;
+    }
 
     logger.info("Created path finder with syncStart {} for {}", syncStart, capabilityListUri);
   }
@@ -114,6 +146,10 @@ public class PathFinder {
 
   public File getSyncPropXmlFile() {
     return syncPropXmlFile;
+  }
+
+  public File getPrevSyncPropXmlFile() {
+    return prevSyncPropXmlFile;
   }
 
   public File getCapabilityListFile() {

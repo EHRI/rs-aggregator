@@ -18,12 +18,14 @@ public class RunAtFixedRateTest {
   }
 
   public void testStop() throws Exception {
-    RunAtFixedRate rafr = new RunAtFixedRate();
-    rafr.setPeriod(1); //minute. will start immediately with period < 3
+    RunAtFixedRate runAtFixedRate = new RunAtFixedRate();
+    runAtFixedRate.setPeriod(1); //minute. will start immediately with period < 3
+    runAtFixedRate.setHourOfDay(6);
+    runAtFixedRate.setMinuteOfHour(42);
     TestJob job = new TestJob();
     job.executionTimes = new int[] {3*60, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10}; // seconds
 
-    rafr.schedule(job);
+    runAtFixedRate.schedule(job);
   }
 
   private class TestJob implements Job {

@@ -1,6 +1,7 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
 import nl.knaw.dans.rs.aggregator.http.Result;
+import nl.knaw.dans.rs.aggregator.util.FileCleaner;
 import nl.knaw.dans.rs.aggregator.util.HashUtil;
 import nl.knaw.dans.rs.aggregator.util.ZonedDateTimeUtil;
 import org.apache.http.impl.client.CloseableHttpClient;

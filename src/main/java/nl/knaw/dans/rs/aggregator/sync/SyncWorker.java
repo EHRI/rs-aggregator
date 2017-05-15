@@ -19,33 +19,6 @@ import java.util.Optional;
  */
 public class SyncWorker implements RsConstants {
 
-  private static final String CN = SyncWorker.class.getSimpleName() + ".";
-
-  public static final String PROP_SYNC_START = CN + "z1.sync.start";
-  public static final String PROP_SYNC_END = CN + "z2.sync.end";
-
-  public static final String PROP_MAX_DOWNLOADS = CN + "a1.max.downloads";
-  public static final String PROP_MAX_DOWNLOAD_RETRY = CN + "a2.max.download.retry";
-  public static final String PROP_TRIAL_RUN = CN + "a3.trial.run";
-  public static final String PROP_SITEMAP_COLLECTOR = CN + "class.sitemap.collector";
-  public static final String PROP_RESOURCE_MANAGER = CN + "class.resource.manager";
-  public static final String PROP_VERIFICATION_POLICY = CN + "class.verification.policy";
-
-  public static final String PROP_TOTAL_ITEMS = CN + "total.items";
-  public static final String PROP_ITEMS_VERIFIED = CN + "items.verified";
-  public static final String PROP_ITEMS_DELETED = CN + "items.deleted";
-  public static final String PROP_ITEMS_CREATED = CN + "items.created";
-  public static final String PROP_ITEMS_UPDATED = CN + "items.updated";
-  public static final String PROP_ITEMS_REMAIN = CN + "items.remain";
-  public static final String PROP_ITEMS_NO_ACTION = CN + "items.no.action";
-  public static final String PROP_TOTAL_FAILED_ITEMS = CN + "total.failed.items";
-  public static final String PROP_FAILED_DELETIONS = CN + "failed.deletions";
-  public static final String PROP_FAILED_CREATIONS = CN + "failed.creations";
-  public static final String PROP_FAILED_UPDATES = CN + "failed.updates";
-  public static final String PROP_FAILED_REMAINS = CN + "failed.remains";
-
-  public static final String PROP_TOTAL_DOWNLOAD_COUNT = CN + "total.download.count";
-
   private final static Logger logger = LoggerFactory.getLogger(SyncWorker.class);
 
   private static final int MAX_DOWNLOADS = Integer.MAX_VALUE;
@@ -70,8 +43,12 @@ public class SyncWorker implements RsConstants {
   private int failedCreations;
   private int failedUpdates;
   private int failedRemains;
+  private int totalFailures;
 
   private int downloadCount;
+  private boolean syncComplete;
+
+  private int preventedActions;
 
   public SyncWorker() {
 
@@ -162,8 +139,12 @@ public class SyncWorker implements RsConstants {
     failedUpdates = 0;
     failedRemains = 0;
     failedDeletions = 0;
+    totalFailures = 0;
 
     downloadCount = 0;
+
+    preventedActions = 0;
+    syncComplete = false;
   }
 
   private void syncLocalResources(PathFinder pathFinder, SyncProperties syncProps) {
@@ -173,15 +154,23 @@ public class SyncWorker implements RsConstants {
       logger.warn("Not synchronizing because of previous {} errors: {}",
         collector.countErrors(), pathFinder.getCapabilityListUri());
     } else {
+      if (collector.hasNewResourceList() && !trialRun) {
+        resourceManager.keepOnly(collector.getMostRecentItems().keySet());
+      }
       for (Map.Entry<URI, UrlItem> entry : collector.getMostRecentItems().entrySet()) {
         syncItem(entry.getKey(), entry.getValue());
       }
     }
-    int failures = failedCreations + failedUpdates + failedDeletions + failedRemains;
-    logger.info("====> items={}, verified={}, failures={}, downloads={} [success/failures] " +
+    totalFailures = failedCreations + failedUpdates + failedDeletions + failedRemains;
+
+    syncComplete = !trialRun && !collector.hasErrors() && preventedActions == 0 && totalFailures == 0;
+
+    logger.info("====> synchronized={}, new ResourceList={}, items={}, verified={}, " +
+        "failures={}, downloads={} [success/failures] " +
         "created={}/{}, updated={}/{}, remain={}/{}, deleted={}/{}, " +
         "no_action={}, trial run={}, resource set={}",
-      itemCount, verifiedItems, failures, downloadCount, itemsCreated, failedCreations, itemsUpdated,
+      syncComplete, collector.hasNewResourceList(), itemCount, verifiedItems, totalFailures, downloadCount, itemsCreated,
+      failedCreations, itemsUpdated,
       failedUpdates, itemsRemain, failedRemains,
       itemsDeleted, failedDeletions, itemsNoAction, trialRun, pathFinder.getCapabilityListUri());
   }
@@ -264,9 +253,11 @@ public class SyncWorker implements RsConstants {
     if (trialRun) {
       logger.debug("Trial run. No action on: {}", normalizedURI);
       allowed = false;
+      preventedActions++;
     } else if (downloadCount >= maxDownloads) {
       logger.debug("Max downloads reached. No further action on: {}", normalizedURI);
       allowed = false;
+      preventedActions++;
     }
     return allowed;
   }
@@ -314,31 +305,31 @@ public class SyncWorker implements RsConstants {
   private void report(PathFinder pathFinder, SyncProperties syncProps) {
     ZonedDateTime syncEnd = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
 
-    syncProps.setDateTime(PROP_SYNC_START, pathFinder.getSyncStart());
-    syncProps.setDateTime(PROP_SYNC_END, syncEnd);
+    syncProps.setDateTime(SyncProperties.PROP_SW_SYNC_START, pathFinder.getSyncStart());
+    syncProps.setDateTime(SyncProperties.PROP_SW_SYNC_END, syncEnd);
+    syncProps.setBool(SyncProperties.PROP_SW_FULLY_SYNCHRONIZED, syncComplete);
 
-    syncProps.setInt(PROP_MAX_DOWNLOADS, getMaxDownloads());
-    syncProps.setInt(PROP_MAX_DOWNLOAD_RETRY, getMaxDownloadRetry());
-    syncProps.setBool(PROP_TRIAL_RUN, isTrialRun());
-    syncProps.setProperty(PROP_SITEMAP_COLLECTOR, getSitemapCollector().getClass().getName());
-    syncProps.setProperty(PROP_RESOURCE_MANAGER, getResourceManager().getClass().getName());
-    syncProps.setProperty(PROP_VERIFICATION_POLICY, getVerificationPolicy().getClass().getName());
+    syncProps.setInt(SyncProperties.PROP_SW_MAX_DOWNLOADS, getMaxDownloads());
+    syncProps.setInt(SyncProperties.PROP_SW_MAX_DOWNLOAD_RETRY, getMaxDownloadRetry());
+    syncProps.setBool(SyncProperties.PROP_SW_TRIAL_RUN, isTrialRun());
+    syncProps.setProperty(SyncProperties.PROP_SW_SITEMAP_COLLECTOR, getSitemapCollector().getClass().getName());
+    syncProps.setProperty(SyncProperties.PROP_SW_RESOURCE_MANAGER, getResourceManager().getClass().getName());
+    syncProps.setProperty(SyncProperties.PROP_SW_VERIFICATION_POLICY, getVerificationPolicy().getClass().getName());
 
-    syncProps.setInt(PROP_TOTAL_ITEMS, itemCount);
-    syncProps.setInt(PROP_ITEMS_VERIFIED, verifiedItems);
-    syncProps.setInt(PROP_ITEMS_DELETED, itemsDeleted);
-    syncProps.setInt(PROP_ITEMS_CREATED, itemsCreated);
-    syncProps.setInt(PROP_ITEMS_UPDATED, itemsUpdated);
-    syncProps.setInt(PROP_ITEMS_REMAIN, itemsRemain);
-    syncProps.setInt(PROP_ITEMS_NO_ACTION, itemsNoAction);
-    int failures = failedCreations + failedUpdates + failedDeletions + failedRemains;
-    syncProps.setInt(PROP_TOTAL_FAILED_ITEMS, failures);
-    syncProps.setInt(PROP_FAILED_DELETIONS, failedDeletions);
-    syncProps.setInt(PROP_FAILED_CREATIONS, failedCreations);
-    syncProps.setInt(PROP_FAILED_UPDATES, failedUpdates);
-    syncProps.setInt(PROP_FAILED_REMAINS, failedRemains);
+    syncProps.setInt(SyncProperties.PROP_SW_TOTAL_ITEMS, itemCount);
+    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_VERIFIED, verifiedItems);
+    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_DELETED, itemsDeleted);
+    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_CREATED, itemsCreated);
+    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_UPDATED, itemsUpdated);
+    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_REMAIN, itemsRemain);
+    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_NO_ACTION, itemsNoAction);
+    syncProps.setInt(SyncProperties.PROP_SW_TOTAL_FAILED_ITEMS, totalFailures);
+    syncProps.setInt(SyncProperties.PROP_SW_FAILED_DELETIONS, failedDeletions);
+    syncProps.setInt(SyncProperties.PROP_SW_FAILED_CREATIONS, failedCreations);
+    syncProps.setInt(SyncProperties.PROP_SW_FAILED_UPDATES, failedUpdates);
+    syncProps.setInt(SyncProperties.PROP_SW_FAILED_REMAINS, failedRemains);
 
-    syncProps.setInt(PROP_TOTAL_DOWNLOAD_COUNT, downloadCount);
+    syncProps.setInt(SyncProperties.PROP_SW_TOTAL_DOWNLOAD_COUNT, downloadCount);
 
     try {
       File file = pathFinder.getSyncPropXmlFile();

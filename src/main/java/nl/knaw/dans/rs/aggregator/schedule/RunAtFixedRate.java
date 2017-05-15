@@ -13,7 +13,42 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A JobScheduler that executes its {@link Job} repeatedly at a fixed time.
+ * A {@link JobScheduler}  that executes its {@link Job} repeatedly at a fixed time.
+ * <p>
+ *   The RunAtFixedRate JobScheduler works with minute precision. You can set an initial start time
+ *   with {@link RunAtFixedRate#setHourOfDay(int)} and {@link RunAtFixedRate#setMinuteOfHour(int)}.
+ *   The lapse of time between successive runs of the submitted Job can be set
+ *   with {@link RunAtFixedRate#setPeriod(int)}.
+ * </p>
+ * <p>In the following examples <code>myJob</code> is an instance of a {@link Job} implementation.</p>
+ * <p>
+ *   Example: Run a Job every 10 minutes.
+ *   <pre>
+ *     RunAtFixedRate runAtFixedRate = new RunAtFixedRate();
+ *     runAtFixedRate.setPeriod(10);
+ *     runAtFixedRate.schedule(myJob);
+ *   </pre>
+ *   This wil execute <code>myJob</code> on every multiple of 10 minutes, starting from the next multiple of
+ *   10 minutes past the whole hour. This is because in our code snippet we didn't touch start time and so initial
+ *   start time was counted from 00.00h. If the execution of <code>myJob</code> takes longer then the 10-minute
+ *   period, the next execution will take place immediately after the ending of the previous one.
+ * </p>
+ * <p>
+ *   Example: Run a Job at 06.42 every day.
+ *   <pre>
+ *     RunAtFixedRate runAtFixedRate = new RunAtFixedRate();
+ *     runAtFixedRate.setHourOfDay(6);
+ *     runAtFixedRate.setMinuteOfHour(42);
+ *     runAtFixedRate.setPeriod(24 * 60);
+ *     runAtFixedRate.schedule(myJob);
+ *   </pre>
+ *   This will execute <code>myJob</code> every day at 06.42, starting from the first occasion counted from now.
+ * </p>
+ * <p>
+ *   The scheduler can be stopped gracefully by creating a file named 'stop' in the working directory.
+ *   Upon detection, a currently executing job will be left to finish first, after which the scheduler will stop.
+ * </p>
+ *
  */
 public class RunAtFixedRate implements JobScheduler {
 

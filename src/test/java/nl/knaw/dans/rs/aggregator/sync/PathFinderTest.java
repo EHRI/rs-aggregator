@@ -20,6 +20,8 @@ import static org.hamcrest.core.IsEqual.equalTo;
  */
 public class PathFinderTest {
 
+  private static String baseDir = "target/test-output/pathfinder";
+
   @Test
   public void testCreateSetPath() throws Exception {
     String[] expectations = {
@@ -36,7 +38,7 @@ public class PathFinderTest {
       "http://zandbak02.dans.knaw.nl:8080/foo/bar/text.txt"
     };
 
-    String baseDir = "target/test-output/pathfinder";
+
     if (new File(baseDir).exists()) {
       Path rootPath = Paths.get(baseDir);
       Files.walk(rootPath, FileVisitOption.FOLLOW_LINKS)
@@ -75,6 +77,13 @@ public class PathFinderTest {
 
     }
 
+  }
+
+  @Test
+  public void testPreviousSyncProp() {
+    URI capaUri = URI.create("http://zandbak11.dans.knaw.nl/ehri2/mdx/capabilitylist.xml");
+    PathFinder pf = new PathFinder("target/test-output/syncapp-context", capaUri);
+    System.out.println(pf.getPrevSyncPropXmlFile());
   }
 
   @Test

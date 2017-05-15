@@ -1,4 +1,4 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +12,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
 
 /**
- * Created on 2017-04-29 10:52.
+ * A {@link FileVisitor} that will remove all files and directories, except the files in the given <code>fileSet</code>.
+ *
  */
 public class FileCleaner implements FileVisitor<Path> {
 

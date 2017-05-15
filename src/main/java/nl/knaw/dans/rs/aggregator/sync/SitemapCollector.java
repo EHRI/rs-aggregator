@@ -8,18 +8,13 @@ import nl.knaw.dans.rs.aggregator.util.NormURI;
 import nl.knaw.dans.rs.aggregator.util.LambdaUtil;
 import nl.knaw.dans.rs.aggregator.xml.Capability;
 import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;
-import nl.knaw.dans.rs.aggregator.xml.RsBuilder;
 import nl.knaw.dans.rs.aggregator.xml.RsConstants;
 import nl.knaw.dans.rs.aggregator.xml.RsMd;
 import nl.knaw.dans.rs.aggregator.xml.RsRoot;
 import nl.knaw.dans.rs.aggregator.xml.Sitemapindex;
 import nl.knaw.dans.rs.aggregator.xml.UrlItem;
 import nl.knaw.dans.rs.aggregator.xml.Urlset;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.utils.DateUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
@@ -27,15 +22,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,29 +38,6 @@ import java.util.Set;
  */
 public class SitemapCollector implements RsConstants {
 
-  private static final String CN = SitemapCollector.class.getSimpleName() + ".";
-  public static final String PROP_AS_OF_DATE_TIME = CN + "a1.as.of.date.time";
-  public static final String PROP_CONVERTER = CN + "a2.converter";
-
-  public static final String PROP_COUNT_INVALID_URIS = CN + "cr.invalid.uris";
-  public static final String PROP_COUNT_ERROR_RESULTS = CN + "cr.error.results";
-  public static final String PROP_COUNT_UNHNDLED_RESULTS = CN + "cr.unhandled.results";
-
-  public static final String PROP_COUNT_CAPABILITY_LISTS = CN + "cl.capability.lists";
-  public static final String PROP_COUNT_RESOURCELIST_INDEXES = CN + "cl.resource.list.indexes";
-  public static final String PROP_COUNT_CHANGELIST_INDEXES = CN + "cl.change.list.indexes";
-  public static final String PROP_COUNT_RESOURCELISTS = CN + "cl.resource.lists";
-  public static final String PROP_COUNT_CHANGELISTS = CN + "cl.change.lists";
-
-  public static final String PROP_DATE_LATEST_RESOURCELIST = CN + "date.latest.resource.list";
-  public static final String PROP_DATE_LATEST_CHANGELIST = CN + "date.latest.change.list";
-
-  public static final String PROP_ITEMS_RECENT = CN + "items.recent";
-  public static final String PROP_ITEMS_REMAINING = CN + "items.remaining";
-  public static final String PROP_ITEMS_CREATED = CN + "items.created";
-  public static final String PROP_ITEMS_UPDATED = CN + "items.updated";
-  public static final String PROP_ITEMS_DELETED = CN + "items.deleted";
-
   private static Logger logger = LoggerFactory.getLogger(SitemapCollector.class);
 
   private CloseableHttpClient httpClient;
@@ -77,8 +45,6 @@ public class SitemapCollector implements RsConstants {
 
   private ZonedDateTime asOfDateTime;
   private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> converter;
-
-  private PathFinder currentPathFinder;
 
   private Set<String> invalidUris;
   private List<Result<?>> errorResults;
@@ -97,6 +63,8 @@ public class SitemapCollector implements RsConstants {
   private int countCreated;
   private int countUpdated;
   private int countDeleted;
+
+  private boolean foundNewResourceList;
 
   private boolean collected;
 
@@ -249,9 +217,13 @@ public class SitemapCollector implements RsConstants {
     return recentItems;
   }
 
+  public boolean hasNewResourceList() {
+    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
+    return foundNewResourceList;
+  }
+
   public void collectSitemaps(PathFinder pathFinder, SyncProperties syncProps) {
     reset();
-    currentPathFinder = pathFinder;
     RsExplorer explorer = new RsExplorer(getHttpClient(), getRsContext())
       .withConverter(getConverter())
       .withFollowChildLinks(true)
@@ -269,34 +241,49 @@ public class SitemapCollector implements RsConstants {
         errorResults.add(result);
       } else {
         analyze(result);
-        collected = true;
       }
     }
+    setNewResourceListFound(pathFinder);
+    collected = true;
     reportResults(pathFinder, syncProps);
-    currentPathFinder = null;
+  }
+
+  private void setNewResourceListFound(PathFinder pathFinder) {
+    File prevSyncPropFile = pathFinder.getPrevSyncPropXmlFile();
+    if (prevSyncPropFile != null) {
+      SyncProperties prevSyncProps = new SyncProperties();
+      try {
+        prevSyncProps.loadFromXML(prevSyncPropFile);
+        ZonedDateTime prevResourceListAt = prevSyncProps.getDateTime(SyncProperties.PROP_CL_DATE_LATEST_RESOURCELIST);
+        foundNewResourceList = ultimateResourceListAt.isAfter(prevResourceListAt);
+      } catch (IOException e) {
+        throw new RuntimeException("Could not load syncProps from " + prevSyncPropFile, e);
+      }
+    }
   }
 
   private void reportResults(PathFinder pathFinder, SyncProperties syncProps) {
-    syncProps.setDateTime(PROP_AS_OF_DATE_TIME, asOfDateTime);
-    syncProps.setProperty(PROP_CONVERTER, getConverter().toString());
-    syncProps.setInt(PROP_COUNT_INVALID_URIS, invalidUris.size());
-    syncProps.setInt(PROP_COUNT_ERROR_RESULTS, errorResults.size());
-    syncProps.setInt(PROP_COUNT_UNHNDLED_RESULTS, unhandledResults.size());
+    syncProps.setDateTime(SyncProperties.PROP_CL_AS_OF_DATE_TIME, asOfDateTime);
+    syncProps.setProperty(SyncProperties.PROP_CL_CONVERTER, getConverter().toString());
+    syncProps.setInt(SyncProperties.PROP_CL_COUNT_INVALID_URIS, invalidUris.size());
+    syncProps.setInt(SyncProperties.PROP_CL_COUNT_ERROR_RESULTS, errorResults.size());
+    syncProps.setInt(SyncProperties.PROP_CL_COUNT_UNHNDLED_RESULTS, unhandledResults.size());
 
-    syncProps.setInt(PROP_COUNT_CAPABILITY_LISTS, countCapabilityLists);
-    syncProps.setInt(PROP_COUNT_RESOURCELIST_INDEXES, countResourceListIndexes);
-    syncProps.setInt(PROP_COUNT_CHANGELIST_INDEXES, countChangelistIndexes);
-    syncProps.setInt(PROP_COUNT_RESOURCELISTS, countResourceLists);
-    syncProps.setInt(PROP_COUNT_CHANGELISTS, countChangeLists);
+    syncProps.setInt(SyncProperties.PROP_CL_COUNT_CAPABILITY_LISTS, countCapabilityLists);
+    syncProps.setInt(SyncProperties.PROP_CL_COUNT_RESOURCELIST_INDEXES, countResourceListIndexes);
+    syncProps.setInt(SyncProperties.PROP_CL_COUNT_CHANGELIST_INDEXES, countChangelistIndexes);
+    syncProps.setInt(SyncProperties.PROP_CL_COUNT_RESOURCELISTS, countResourceLists);
+    syncProps.setInt(SyncProperties.PROP_CL_COUNT_CHANGELISTS, countChangeLists);
 
-    syncProps.setDateTime(PROP_DATE_LATEST_RESOURCELIST, ultimateResourceListAt);
-    syncProps.setDateTime(PROP_DATE_LATEST_CHANGELIST, ultimateChangeListFrom);
+    syncProps.setDateTime(SyncProperties.PROP_CL_DATE_LATEST_RESOURCELIST, ultimateResourceListAt);
+    syncProps.setDateTime(SyncProperties.PROP_CL_DATE_LATEST_CHANGELIST, ultimateChangeListFrom);
+    syncProps.setBool(SyncProperties.PROP_CL_FOUND_NEW_RESOURCELIST, foundNewResourceList);
 
-    syncProps.setInt(PROP_ITEMS_RECENT, recentItems.size());
-    syncProps.setInt(PROP_ITEMS_REMAINING, countRemain);
-    syncProps.setInt(PROP_ITEMS_CREATED, countCreated);
-    syncProps.setInt(PROP_ITEMS_UPDATED, countUpdated);
-    syncProps.setInt(PROP_ITEMS_DELETED, countDeleted);
+    syncProps.setInt(SyncProperties.PROP_CL_ITEMS_RECENT, recentItems.size());
+    syncProps.setInt(SyncProperties.PROP_CL_ITEMS_REMAINING, countRemain);
+    syncProps.setInt(SyncProperties.PROP_CL_ITEMS_CREATED, countCreated);
+    syncProps.setInt(SyncProperties.PROP_CL_ITEMS_UPDATED, countUpdated);
+    syncProps.setInt(SyncProperties.PROP_CL_ITEMS_DELETED, countDeleted);
 
     try {
       File file = pathFinder.getSyncPropXmlFile();
@@ -327,6 +314,9 @@ public class SitemapCollector implements RsConstants {
 
     ultimateResourceListAt = ZonedDateTime.parse(NULL_DATE).withZoneSameInstant(ZoneOffset.UTC);
     ultimateChangeListFrom = ZonedDateTime.parse(NULL_DATE).withZoneSameInstant(ZoneOffset.UTC);
+
+    foundNewResourceList = true; // -> causes syncWorker to call .keepOnly on ResourceManager,
+    // unless we set it otherwise in setNewResourceListFound.
   }
 
   @SuppressWarnings("unchecked")
@@ -495,10 +485,10 @@ public class SitemapCollector implements RsConstants {
     }
   }
 
-  private PathFinder getCurrentPathFinder() {
-    if (currentPathFinder == null) throw new IllegalStateException("No current PathFinder");
-    return currentPathFinder;
-  }
+//  private PathFinder getCurrentPathFinder() {
+//    if (currentPathFinder == null) throw new IllegalStateException("No current PathFinder");
+//    return currentPathFinder;
+//  }
 
 
 }

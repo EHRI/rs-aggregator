@@ -1,5 +1,6 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
+import nl.knaw.dans.rs.aggregator.util.FileCleaner;
 import org.junit.Test;
 
 import java.io.File;
