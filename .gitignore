@@ -15,4 +15,4 @@ hs_err_pid*
 target/
 logs/
 docker/destination/
-
+docker/cfg/stop
