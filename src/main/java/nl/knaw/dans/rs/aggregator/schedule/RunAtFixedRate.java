@@ -103,8 +103,6 @@ public class RunAtFixedRate implements JobScheduler {
   public void schedule(Job job) throws Exception {
     logger.info("Started {} with job {}.", this.getClass().getName(), job.getClass().getName());
 
-    final String home = new File(".").getAbsoluteFile().getParent();
-
     ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC).withSecond(0).withNano(0);
     ZonedDateTime start = now.withHour(hourOfDay).withMinute(minuteOfHour).withSecond(0).withNano(0);
     while (start.isBefore(now)) {
@@ -133,11 +131,11 @@ public class RunAtFixedRate implements JobScheduler {
       }
       logger.info("<<<<<<<<<< End of job execution #{} on {}", runCounter, job.getClass().getName());
       if (stop) {
-        logger.info("Stopped application at synchronisation run #{}, because file named 'stop' was found.",
+        logger.info("Stopped application at synchronisation run #{}, because file named 'cfg/stop' was found.",
           runCounter);
       } else {
         logger.info("delay={}", scheduledFuture.getDelay(TimeUnit.MINUTES));
-        logger.info("# touch {}/stop # - to stop this service gracefully.", home);
+        logger.info("# touch cfg/stop # - to stop this service gracefully.");
         // in case execution takes longer then period, adjust next
         ZonedDateTime rightnow = ZonedDateTime.now(ZoneOffset.UTC).withSecond(0).withNano(0);
         if (next.isBefore(rightnow)) {
@@ -154,9 +152,9 @@ public class RunAtFixedRate implements JobScheduler {
     // Watch the file system for a file named 'stop'
     ScheduledExecutorService watch = Executors.newScheduledThreadPool(1);
     Runnable watcher = () -> {
-      if (new File("stop").exists()) {
+      if (new File("cfg/stop").exists()) {
         stop = true;
-        logger.info("Stopping scheduler after job execution #{}, because file named 'stop' was found.",
+        logger.info("Stopping scheduler after job execution #{}, because file named 'cfg/stop' was found.",
           runCounter);
         scheduler.shutdown();
         watch.shutdown();

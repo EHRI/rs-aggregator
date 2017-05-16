@@ -41,7 +41,7 @@ public class NormURITest {
       Optional<URI> maybeURI = NormURI.normalize(expectation[0]);
       String normalized = null;
       if (maybeURI.isPresent()) normalized = maybeURI.get().toString();
-      System.out.println(expectation[0] + " -> " + expectation[1] + " -->> " + normalized);
+      //System.out.println(expectation[0] + " -> " + expectation[1] + " -->> " + normalized);
       assertThat(normalized, equalTo(expectation[1]));
     }
   }

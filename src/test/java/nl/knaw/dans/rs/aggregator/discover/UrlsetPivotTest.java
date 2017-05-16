@@ -48,16 +48,16 @@ public class UrlsetPivotTest {
 
     UrlSetPivot pivot = new UrlSetPivot(index);
 
-    pivot.listSortedUrlsetResults(Capability.RESOURCELIST).forEach(urlsetResult -> System.out.println(urlsetResult.getUri()));
+    //pivot.listSortedUrlsetResults(Capability.RESOURCELIST).forEach(urlsetResult -> System.out.println(urlsetResult.getUri()));
 
-    System.out.println();
+    //System.out.println();
     Map<String, UrlItem> locs = pivot.mapUrlItemsByLoc(Capability.RESOURCELIST);
-    locs.entrySet().forEach(System.out::println);
+    //locs.entrySet().forEach(System.out::println);
     assertThat(locs.size(), is(9));
 
-    System.out.println();
+    //System.out.println();
     Map<URI, UrlItem> uris = pivot.mapUrlItemsByUri(Capability.RESOURCELIST);
-    uris.entrySet().forEach(System.out::println);
+    //uris.entrySet().forEach(System.out::println);
     assertThat(uris.size(), is(7));
 
     long invalids = uris.keySet().stream().filter(uri -> uri.getPath().startsWith("invalid")).count();

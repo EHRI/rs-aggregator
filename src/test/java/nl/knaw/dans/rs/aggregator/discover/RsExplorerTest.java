@@ -4,6 +4,7 @@ import nl.knaw.dans.rs.aggregator.http.AbstractRemoteTest;
 import nl.knaw.dans.rs.aggregator.http.Result;
 import nl.knaw.dans.rs.aggregator.xml.RsMd;
 import nl.knaw.dans.rs.aggregator.xml.RsRoot;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockserver.matchers.Times;
 import org.mockserver.model.HttpRequest;
@@ -122,6 +123,7 @@ public class RsExplorerTest extends AbstractRemoteTest {
       equalTo("resourcedump"));
   }
 
+  @Ignore("Noisy error log")
   @Test
   public void findInvalidSitemapDocument() throws Exception {
     String path = "/.well-known/resourcesync";

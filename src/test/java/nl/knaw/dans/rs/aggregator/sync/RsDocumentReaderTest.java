@@ -4,6 +4,7 @@ import nl.knaw.dans.rs.aggregator.http.AbstractRemoteTest;
 import nl.knaw.dans.rs.aggregator.http.Result;
 import nl.knaw.dans.rs.aggregator.xml.Capability;
 import nl.knaw.dans.rs.aggregator.xml.RsRoot;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockserver.matchers.Times;
 import org.mockserver.model.HttpRequest;
@@ -81,6 +82,7 @@ public class RsDocumentReaderTest extends AbstractRemoteTest {
 //    System.out.println(result);
   }
 
+  @Ignore("Noisy error log")
   @Test
   public void testReadInvalidXml() throws Exception {
     String path = "/rsserv/capabilitylist.xml";

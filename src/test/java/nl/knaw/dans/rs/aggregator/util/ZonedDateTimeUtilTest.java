@@ -69,8 +69,8 @@ public class ZonedDateTimeUtilTest {
       assertThat(str5, equalTo(ZonedDateTimeUtil.toFileSaveFormat(zdt4)));
       assertThat(str5, equalTo(ZonedDateTimeUtil.toFileSaveFormat(zdt5)));
 
-      System.out.println(input + " -> " + str1 + " -> " + new Date(lm1) + " = " + lm1 + " -> "
-        + str4 + " -> " + str5);
+      //System.out.println(input + " -> " + str1 + " -> " + new Date(lm1) + " = " + lm1 + " -> "
+      //  + str4 + " -> " + str5);
       assertThat(lm1, is(lm2));
       //assertThat(str1, equalTo(str4));
     }
@@ -99,7 +99,7 @@ public class ZonedDateTimeUtilTest {
   public void testLong() {
     long lm1 = 0L;
     ZonedDateTime zdt = ZonedDateTimeUtil.fromLong(lm1);
-    System.out.println(zdt);
+    //System.out.println(zdt);
     long lm2 = ZonedDateTimeUtil.toLong(zdt);
     //System.out.println(lm1 + " -> " + lm2);
     assertThat(lm2, is(0L));

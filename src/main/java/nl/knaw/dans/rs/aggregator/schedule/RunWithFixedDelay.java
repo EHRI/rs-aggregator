@@ -41,7 +41,6 @@ public class RunWithFixedDelay implements JobScheduler {
   @Override
   public void schedule(Job job) throws Exception {
     logger.info("Started {} with job {}", this.getClass().getName(), job.getClass().getName());
-    final String home = new File(".").getAbsoluteFile().getParent();
 
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     Runnable jobRunner = () -> {
@@ -59,10 +58,10 @@ public class RunWithFixedDelay implements JobScheduler {
       }
       logger.info("<<<<<<<<<<   End of job execution #{} on {}", runCounter, job.getClass().getName());
       if (stop) {
-        logger.info("Stopped application at job execution #{}, because file named 'stop' was found.",
+        logger.info("Stopped application at job execution #{}, because file named 'cfg/stop' was found.",
           runCounter);
       } else {
-        logger.info("# touch {}/stop # - to stop this service gracefully.", home);
+        logger.info("# touch cfg/stop # - to stop this service gracefully.");
         logger.info("Next job execution will start in {} minutes.", delay);
       }
     };
@@ -71,9 +70,9 @@ public class RunWithFixedDelay implements JobScheduler {
     // Watch the file system for a file named 'stop'
     ScheduledExecutorService watch = Executors.newScheduledThreadPool(1);
     Runnable watcher = () -> {
-      if (new File("stop").exists()) {
+      if (new File("cfg/stop").exists()) {
         stop = true;
-        logger.info("Stopping scheduler after job execution #{}, because file named 'stop' was found.",
+        logger.info("Stopping scheduler after job execution #{}, because file named 'cfg/stop' was found.",
           runCounter);
         scheduler.shutdown();
         watch.shutdown();

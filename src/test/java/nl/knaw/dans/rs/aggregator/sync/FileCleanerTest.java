@@ -1,6 +1,7 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
 import nl.knaw.dans.rs.aggregator.util.FileCleaner;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -16,6 +17,7 @@ import java.util.Set;
 public class FileCleanerTest {
 
   @Test
+  @Ignore("Assumes non-existing directory")
   public void testCleaner() throws Exception {
     Set<File> fileSet = new HashSet<>();
     fileSet.add(new File("/Users/ecco/git/rs-aggregator/target/test-output/synchronizer/zandbak11.dans.knaw.nl/ehri2/mdx/__SOR__/ehri2/tmp/rs/collection2/folder1/doc1.txt"));

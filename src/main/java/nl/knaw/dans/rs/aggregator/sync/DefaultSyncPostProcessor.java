@@ -62,7 +62,7 @@ public class DefaultSyncPostProcessor implements SyncPostProcessor {
       try {
         Files.walkFileTree(pathFinder.getMetadataDirectory().toPath(), fileCleaner);
       } catch (IOException e) {
-        throw new RuntimeException("Could not clean metadata directory for " + pathFinder.getCapabilityListUri(), e);
+        logger.error("Could not clean metadata directory for " + pathFinder.getCapabilityListUri(), e);
       }
       deletedFiles = fileCleaner.getDeletedFileCount();
     }
@@ -87,16 +87,15 @@ public class DefaultSyncPostProcessor implements SyncPostProcessor {
       try {
         sp.loadFromXML(file);
         if (sp.getBool(SyncProperties.PROP_SW_FULLY_SYNCHRONIZED)) validSyncProps++;
-        if (validSyncProps > keepValidSyncProps) {
-          boolean deleted = file.delete();
-          if (deleted) {
-            deletedSyncProps++;
-            logger.debug("Deleted syncProperties file {}", file);
-          }
-        }
       } catch (IOException e) {
-        throw new RuntimeException("Could not clean synchronisation-properties directory for "
-          + pathFinder.getCapabilityListUri(), e);
+        logger.warn("Could not load properties from {}", file, e);
+      }
+      if (validSyncProps > keepValidSyncProps) {
+        boolean deleted = file.delete();
+        if (deleted) {
+          deletedSyncProps++;
+          logger.debug("Deleted syncProperties file {}", file);
+        }
       }
     }
     return deletedSyncProps;

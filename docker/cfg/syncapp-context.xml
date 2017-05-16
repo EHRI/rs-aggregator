@@ -41,7 +41,7 @@
         <?Description After maxErrorCount errors have been caught the service will exit. Default=3 ?>
         <property name="maxErrorCount" value="3"/>
         <?Description Delay between successive synchronisation runs in minutes. Default=60 ?>
-        <property name="delay" value="60"/>
+        <property name="delay" value="10"/>
     </bean>-->
 
     <!-- RunAtFixedRate will run synchronisation repeatedly at a fixed time. -->
@@ -49,7 +49,7 @@
         <?Description after maxErrorCount errors have been caught the service will exit. Default=3 ?>
         <property name="maxErrorCount" value="3"/>
         <?Description Time in minutes between start of synchronisation runs. Default=60 ?>
-        <property name="period" value="#{ 1 }"/>
+        <property name="period" value="#{ 3*60 }"/>
         <?Description At what time (hour and minute) should synchronisation first run. Default=00:00 ?>
         <property name="hourOfDay" value="00"/>
         <property name="minuteOfHour" value="00"/>

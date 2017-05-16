@@ -1,0 +1,2 @@
+http://zandbak11.dans.knaw.nl/ehri2/mdx/capabilitylist.xml
+http://zandbak11.dans.knaw.nl/ehri2/mdy/capabilitylist.xml

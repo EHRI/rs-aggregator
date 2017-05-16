@@ -46,6 +46,6 @@ public class ResultTest {
     results.add(r2);
     results.add(r0);
 
-    results.stream().sorted().map(Result::getUri).forEach(System.out::println);
+    //results.stream().sorted().map(Result::getUri).forEach(System.out::println);
   }
 }

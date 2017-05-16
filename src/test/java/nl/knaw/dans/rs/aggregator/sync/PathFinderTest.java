@@ -52,28 +52,28 @@ public class PathFinderTest {
 
       PathFinder pm = new PathFinder(baseDir, capaUri);
 
-      System.out.println(pm.getBaseDirectory());
+      //System.out.println(pm.getBaseDirectory());
 
-      System.out.println(pm.getSetDirectory());
+      //System.out.println(pm.getSetDirectory());
       assertThat(pm.getSetDirectory().mkdirs(), is(true));
 
-      System.out.println(pm.getMetadataDirectory());
+      //System.out.println(pm.getMetadataDirectory());
       assertThat(pm.getMetadataDirectory().mkdirs(), is(true));
 
-      System.out.println(pm.getResourceDirectory());
+      //System.out.println(pm.getResourceDirectory());
       assertThat(pm.getResourceDirectory().mkdirs(), is(true));
 
-      System.out.println(pm.getCapabilityListFile());
+      //System.out.println(pm.getCapabilityListFile());
 
       URI mdUri = URI.create(expectations[i + 1]);
-      System.out.println(pm.findMetadataFilePath(mdUri));
+      //System.out.println(pm.findMetadataFilePath(mdUri));
 
       URI rsUri = URI.create(expectations[i + 2]);
-      System.out.println(pm.findResourceFilePath(rsUri));
+      //System.out.println(pm.findResourceFilePath(rsUri));
 
       assertThat(pm.getCapabilityListFile(), equalTo(pm.findMetadataFilePath(capaUri)));
 
-      System.out.println();
+      //System.out.println();
 
     }
 
@@ -83,15 +83,15 @@ public class PathFinderTest {
   public void testPreviousSyncProp() {
     URI capaUri = URI.create("http://zandbak11.dans.knaw.nl/ehri2/mdx/capabilitylist.xml");
     PathFinder pf = new PathFinder("target/test-output/syncapp-context", capaUri);
-    System.out.println(pf.getPrevSyncPropXmlFile());
+    //System.out.println(pf.getPrevSyncPropXmlFile());
   }
 
   @Test
   public void testFileStore() throws Exception {
     Path path = Paths.get(".");
-    System.out.println(path.toAbsolutePath());
+    //System.out.println(path.toAbsolutePath());
     FileStore fStore = Files.getFileStore(path);
-    System.out.println(fStore);
+    //System.out.println(fStore);
   }
 
 }

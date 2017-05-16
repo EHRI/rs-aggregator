@@ -75,6 +75,7 @@ public class PathFinder {
     String syncDate = ZonedDateTimeUtil.toFileSaveFormat(syncStart);
     syncPropXmlFile = new File(syncPropDirectory, syncDate + ".xml");
 
+    // Get the previously SyncProperties file ...
     File[] prevSyncProps = syncPropDirectory.listFiles(new FileFilter() {
       @Override
       public boolean accept(File pathname) {
@@ -87,7 +88,7 @@ public class PathFinder {
             syncProps.loadFromXML(pathname);
             accepted = syncProps.getBool(SyncProperties.PROP_SW_FULLY_SYNCHRONIZED);
           } catch (IOException e) {
-            throw new RuntimeException("Could not read syncProps from " + pathname, e);
+            logger.warn("Could not read syncProps from {}", pathname, e);
           }
         }
         return accepted;
