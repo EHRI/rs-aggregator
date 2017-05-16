@@ -68,6 +68,7 @@ public class SyncProperties extends Properties {
   public static final String PROP_SW_SYNC_END = SW + "z2.sync.end";
   public static final String PROP_SW_SYNC_START = SW + "z1.sync.start";
 
+
   public Object setDateTime(String key, ZonedDateTime zdt) {
     if (zdt == null) {
       return remove(key);

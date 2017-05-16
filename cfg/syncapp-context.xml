@@ -13,11 +13,18 @@
     <!-- resource-manager is an implementation of nl.knaw.dans.rs.aggregator.sync.ResourceManager -->
     <bean id="resource-manager" class="nl.knaw.dans.rs.aggregator.sync.FsResourceManager"/>
 
+    <!-- sync-post-processor is an implementation of nl.knaw.dans.rs.aggregator.sync.SyncPostProcessor -->
+    <bean id="sync-post-processor" class="nl.knaw.dans.rs.aggregator.sync.DefaultSyncPostProcessor">
+        <!-- How many most recent SyncProperties files should be kept -->
+        <property name="keepValidSyncProps" value="10"/>
+    </bean>
+
     <!-- Main class for synchronization -->
     <bean id="sync-job" class="nl.knaw.dans.rs.aggregator.sync.SyncJob">
         <property name="sitemapConverterProvider" ref="sitemap-converter-provider"/>
         <property name="verificationPolicy" ref="verification-policy"/>
         <property name="resourceManager" ref="resource-manager"/>
+        <property name="syncPostProcessor" ref="sync-post-processor"/>
         <!-- Location of file with list of uri's, each line contains a capability list uri -->
         <property name="uriListLocation" value="src/test/resources/uri-list.txt"/>
         <!-- Location of directory that will contain synchronized resources and metadata -->

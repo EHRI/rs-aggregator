@@ -9,13 +9,6 @@
 		</encoder>
 	</appender>
 
-	<!--<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<file>logs/rs-aggregator.log</file>
-		<encoder>
-			<pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
-		</encoder>
-	</appender>-->
-
 	<appender name="ROLLINGFILE"
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>logs/syncapp.log</file>
@@ -31,10 +24,11 @@
 		</encoder>
 	</appender>
 
+	<logger name="org.apache.http" level="info"/>
 
 	<root level="info">
-		<appender-ref ref="STDOUT" />
-		<!--<appender-ref ref="FILE"/>-->
-		<appender-ref ref="ROLLINGFILE" />
+		<appender-ref ref="STDOUT"/>
+		<appender-ref ref="ROLLINGFILE"/>
 	</root>
+
 </configuration>

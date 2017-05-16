@@ -46,6 +46,7 @@ public class SitemapCollector implements RsConstants {
   private ZonedDateTime asOfDateTime;
   private LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> converter;
 
+  private ResultIndex currentIndex;
   private Set<String> invalidUris;
   private List<Result<?>> errorResults;
   private List<Result<?>> unhandledResults;
@@ -66,7 +67,6 @@ public class SitemapCollector implements RsConstants {
 
   private boolean foundNewResourceList;
 
-  private boolean collected;
 
   public SitemapCollector() {
   }
@@ -123,102 +123,84 @@ public class SitemapCollector implements RsConstants {
     return this;
   }
 
-  public boolean isCollected() {
-    return collected;
+
+  public ResultIndex getCurrentIndex() {
+    return currentIndex;
   }
 
   public Set<String> getInvalidUris() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return invalidUris;
   }
 
   public List<Result<?>> getErrorResults() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return errorResults;
   }
 
   public List<Result<?>> getUnhandledResults() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return unhandledResults;
   }
 
   public boolean hasErrors() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return !(invalidUris.isEmpty() && errorResults.isEmpty() && unhandledResults.isEmpty());
   }
 
   public int countErrors() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return invalidUris.size() + errorResults.size() + unhandledResults.size();
   }
 
   public int getCountCapabilityLists() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countCapabilityLists;
   }
 
   public int getCountResourceListIndexes() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countResourceListIndexes;
   }
 
   public int getCountChangelistIndexes() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countChangelistIndexes;
   }
 
   public int getCountResourceLists() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countResourceLists;
   }
 
   public int getCountChangeLists() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countChangeLists;
   }
 
   public int getCountRemain() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countRemain;
   }
 
   public int getCountCreated() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countCreated;
   }
 
   public int getCountUpdated() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countUpdated;
   }
 
   public int getCountDeleted() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return countDeleted;
   }
 
   public ZonedDateTime getUltimateResourceListAt() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return ultimateResourceListAt;
   }
 
   public ZonedDateTime getUltimateChangeListFrom() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return ultimateChangeListFrom;
   }
 
   public ZonedDateTime getUltmateListDate() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return ultimateChangeListFrom.isAfter(ultimateResourceListAt) ? ultimateChangeListFrom : ultimateResourceListAt;
   }
 
   public Map<URI, UrlItem> getMostRecentItems() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return recentItems;
   }
 
   public boolean hasNewResourceList() {
-    if (!collected) throw new IllegalStateException("SitemapCollector has not collected sitemaps.");
     return foundNewResourceList;
   }
 
@@ -229,14 +211,14 @@ public class SitemapCollector implements RsConstants {
       .withFollowChildLinks(true)
       .withFollowIndexLinks(false)
       .withFollowParentLinks(false);
-    ResultIndex index = explorer.explore(pathFinder.getCapabilityListUri());
+    currentIndex = explorer.explore(pathFinder.getCapabilityListUri());
 
-    invalidUris = index.getInvalidUris();
+    invalidUris = currentIndex.getInvalidUris();
     for (String invalidUri : invalidUris) {
       logger.warn("Found invalid URI: {}", invalidUri);
     }
 
-    for (Result<?> result : index.getResultMap().values()) {
+    for (Result<?> result : currentIndex.getResultMap().values()) {
       if (result.hasErrors()) {
         errorResults.add(result);
       } else {
@@ -244,7 +226,6 @@ public class SitemapCollector implements RsConstants {
       }
     }
     setNewResourceListFound(pathFinder);
-    collected = true;
     reportResults(pathFinder, syncProps);
   }
 
@@ -297,6 +278,7 @@ public class SitemapCollector implements RsConstants {
   }
 
   private void reset() {
+    currentIndex = null;
     errorResults = new ArrayList<>();
     unhandledResults = new ArrayList<>();
     recentItems = new HashMap<>();

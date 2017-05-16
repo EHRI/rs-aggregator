@@ -80,7 +80,7 @@ public class FsResourceManager implements ResourceManager {
         //logger.debug("Verified {} hash of {}.", algorithm, normalizedURI);
       } else {
         status = VerificationStatus.verification_failure;
-        logger.warn("Hash failure. algorithm={}, remote={}, local={}, uri={}",
+        logger.info("Hash failure. algorithm={}, remote={}, local={}, uri={}",
           algorithm, hash, localHash, normalizedURI);
       }
     } catch (NoSuchAlgorithmException e) {
@@ -103,7 +103,7 @@ public class FsResourceManager implements ResourceManager {
       //logger.debug("Verified Last-modified of {}", normalizedURI);
     } else {
       status = VerificationStatus.verification_failure;
-      logger.warn("Last-modified not equal. remote={} ({}), local={} ({}), uri={}",
+      logger.info("Last-modified not equal. remote={} ({}), local={} ({}), uri={}",
         remoteLm, new Date(remoteLm),
         localLm, new Date(localLm), normalizedURI);
     }
@@ -119,23 +119,23 @@ public class FsResourceManager implements ResourceManager {
       //logger.debug("Verified Length of {}", normalizedURI);
     } else {
       status = VerificationStatus.verification_failure;
-      logger.warn("Length not equal. remote={}, local={}, uri={}", size, localSize, normalizedURI);
+      logger.info("Length not equal. remote={}, local={}, uri={}", size, localSize, normalizedURI);
     }
     return status;
   }
 
   @Override
   public boolean keepOnly(@Nonnull Set<URI> normalizedURIs) {
-    boolean success = false;
     Set<File> fileSet = getPathFinder().findResourceFilePaths(normalizedURIs);
     FileCleaner fileCleaner = new FileCleaner(fileSet);
+    File resourceDirectory = getPathFinder().getResourceDirectory();
+    if (!resourceDirectory.exists()) return true;
     try {
       Files.walkFileTree(getPathFinder().getResourceDirectory().toPath(), fileCleaner);
-      success = true;
     } catch (IOException e) {
-      e.printStackTrace();
+      throw new RuntimeException("Could not clear resource directory for " + getPathFinder().getCapabilityListUri(), e);
     }
-    return success;
+    return true;
   }
 
   @Override

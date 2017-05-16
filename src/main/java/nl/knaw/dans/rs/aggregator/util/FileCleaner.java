@@ -21,8 +21,19 @@ public class FileCleaner implements FileVisitor<Path> {
 
   private final Set<File> fileSet;
 
+  private int deletedFileCount;
+  private int deletedDirectoryCount;
+
   public FileCleaner(Set<File> fileSet) {
     this.fileSet = fileSet;
+  }
+
+  public int getDeletedFileCount() {
+    return deletedFileCount;
+  }
+
+  public int getDeletedDirectoryCount() {
+    return deletedDirectoryCount;
   }
 
   @Override
@@ -36,7 +47,10 @@ public class FileCleaner implements FileVisitor<Path> {
     File bFile = file.toAbsolutePath().toFile();
     if (!fileSet.contains(bFile)) {
       boolean deleted = bFile.delete();
-      if (deleted) logger.debug("Deleted file {}", file);
+      if (deleted) {
+        deletedFileCount++;
+        logger.debug("Deleted file {}", file);
+      }
     }
     return FileVisitResult.CONTINUE;
   }
@@ -53,7 +67,10 @@ public class FileCleaner implements FileVisitor<Path> {
     File[] children = directory.listFiles();
     if (children == null || children.length == 0) {
       boolean deleted = directory.delete();
-      if (deleted) logger.debug("Deleted directory {}", dir);
+      if (deleted) {
+        deletedDirectoryCount++;
+        logger.debug("Deleted directory {}", dir);
+      }
     }
     return FileVisitResult.CONTINUE;
   }

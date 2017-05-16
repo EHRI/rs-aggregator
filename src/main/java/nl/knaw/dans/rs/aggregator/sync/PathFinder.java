@@ -161,7 +161,7 @@ public class PathFinder {
     return new File(metadataDirectory, restPath);
   }
 
-  public File findResourceFilePath(URI uri) {
+  public File findResourceFilePath(@Nonnull URI uri) {
     return new File(resourceDirectory, extractPath(uri));
   }
 
@@ -182,5 +182,9 @@ public class PathFinder {
       .map(this::findResourceFilePath).collect(Collectors.toSet());
   }
 
+  public Set<File> findMetadataFilePaths(Collection<URI> uris) {
+    return uris.parallelStream()
+      .map(this::findMetadataFilePath).collect(Collectors.toSet());
+  }
 
 }

@@ -31,7 +31,7 @@ public class SyncJob implements Job {
   private ResourceManager resourceManager;
 
   private SitemapCollector sitemapCollector;
-  private SyncWorker syncWorker;
+  private SyncPostProcessor syncPostProcessor;
 
   private String uriListLocation;
   private String baseDirectory;
@@ -69,6 +69,17 @@ public class SyncJob implements Job {
   public void setResourceManager(ResourceManager resourceManager) {
     logger.debug("Resource manager: {}", resourceManager);
     this.resourceManager = resourceManager;
+  }
+
+  public SyncPostProcessor getSyncPostProcessor() {
+    if (syncPostProcessor == null) {
+      syncPostProcessor = new DefaultSyncPostProcessor();
+    }
+    return syncPostProcessor;
+  }
+
+  public void setSyncPostProcessor(SyncPostProcessor syncPostProcessor) {
+    this.syncPostProcessor = syncPostProcessor;
   }
 
   public CloseableHttpClient getHttpClient() {
@@ -156,12 +167,14 @@ public class SyncJob implements Job {
       .withSitemapCollector(sitemapCollector)
       .withVerificationPolicy(getVerificationPolicy())
       .withResourceManager(getResourceManager());
+    SyncPostProcessor syncPostProcessor = getSyncPostProcessor();
 
     for (URI uri : uriList) {
       PathFinder pathFinder = new PathFinder(getBaseDirectory(), uri);
       SyncProperties syncProps = new SyncProperties();
       sitemapConverterProvider.setPathFinder(pathFinder);
       syncWorker.synchronize(pathFinder, syncProps);
+      syncPostProcessor.postProcess(pathFinder, syncProps, sitemapCollector.getCurrentIndex());
     }
 
   }
