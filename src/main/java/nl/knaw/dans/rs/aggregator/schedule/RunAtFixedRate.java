@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
  *   This will execute <code>myJob</code> every day at 06.42, starting from the first occasion counted from now.
  * </p>
  * <p>
- *   The scheduler can be stopped gracefully by creating a file named 'stop' in the working directory.
+ *   The scheduler can be stopped gracefully by creating a file 'cfg/stop', relative to the working directory.
  *   Upon detection, a currently executing job will be left to finish first, after which the scheduler will stop.
  * </p>
  *

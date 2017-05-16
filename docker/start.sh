@@ -2,7 +2,6 @@
 
 mode="$1" # ./start.sh d # if you want to run the container in detached mode.
 
-
 DOCKER_IMAGE="bhenk/rs-aggregator"
 
 # build image if it does not exist
@@ -23,7 +22,7 @@ rm cfg/stop
 CONFIG_DIR=$PWD/cfg
 # The directory for logs
 LOG_DIR=$PWD/logs
-# The destination directory
+# Resources and metadata are stored in destination
 DESTINATION_DIR=$PWD/destination
 
 if [ "$mode" == "d" ]; then
