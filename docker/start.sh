@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+mode="$1" # ./start.sh d # if you want to run the container in detached mode.
+
+
 DOCKER_IMAGE="bhenk/rs-aggregator"
 
 # build image if it does not exist
@@ -23,9 +26,17 @@ LOG_DIR=$PWD/logs
 # The destination directory
 DESTINATION_DIR=$PWD/destination
 
-docker run -it --rm --name rs_aggregator \
-    -v $CONFIG_DIR:/code/cfg \
-    -v $LOG_DIR:/code/logs \
-    -v $DESTINATION_DIR:/code/destination \
-    $DOCKER_IMAGE
-
+if [ "$mode" == "d" ]; then
+    echo "Starting docker container in detached mode"
+    docker run -d --rm --name rs_aggregator \
+        -v $CONFIG_DIR:/code/cfg \
+        -v $LOG_DIR:/code/logs \
+        -v $DESTINATION_DIR:/code/destination \
+        $DOCKER_IMAGE
+else
+    docker run -it --rm --name rs_aggregator \
+        -v $CONFIG_DIR:/code/cfg \
+        -v $LOG_DIR:/code/logs \
+        -v $DESTINATION_DIR:/code/destination \
+        $DOCKER_IMAGE
+fi
