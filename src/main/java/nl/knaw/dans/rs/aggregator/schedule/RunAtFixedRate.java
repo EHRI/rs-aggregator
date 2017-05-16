@@ -101,7 +101,8 @@ public class RunAtFixedRate implements JobScheduler {
 
   @Override
   public void schedule(Job job) throws Exception {
-    logger.info("Started {} with job {}.", this.getClass().getName(), job.getClass().getName());
+    logger.info("Start={}:{}, period={} minutes, job={}", String.format("%02d", hourOfDay),
+      String.format("%02d", minuteOfHour), period, job.getClass().getName());
 
     ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC).withSecond(0).withNano(0);
     ZonedDateTime start = now.withHour(hourOfDay).withMinute(minuteOfHour).withSecond(0).withNano(0);

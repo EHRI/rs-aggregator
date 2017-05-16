@@ -32,11 +32,13 @@
     </bean>
 
     <!-- Choose and configure a job-scheduler (or roll your own) -->
-    <!-- RunOnceScheduler will run synchronisation once and quit. -->
+    <!-- ======================================================= -->
+
+    <!-- === RunOnceScheduler will run synchronisation once and quit. === -->
     <!--<bean id="job-scheduler" class="nl.knaw.dans.rs.aggregator.schedule.RunOnceScheduler"/>-->
 
-    <!-- RunWithFixedDelay will run synchronisation repeatedly
-            with a fixed delay between end and start of successive runs. -->
+    <!-- === RunWithFixedDelay will run synchronisation repeatedly
+            with a fixed delay between end and start of successive runs. === -->
     <!--<bean id="job-scheduler" class="nl.knaw.dans.rs.aggregator.schedule.RunWithFixedDelay">
         <?Description After maxErrorCount errors have been caught the service will exit. Default=3 ?>
         <property name="maxErrorCount" value="3"/>
@@ -44,7 +46,7 @@
         <property name="delay" value="10"/>
     </bean>-->
 
-    <!-- RunAtFixedRate will run synchronisation repeatedly at a fixed time. -->
+    <!-- === RunAtFixedRate will run synchronisation repeatedly at a fixed time. === -->
     <bean id="job-scheduler" class="nl.knaw.dans.rs.aggregator.schedule.RunAtFixedRate">
         <?Description after maxErrorCount errors have been caught the service will exit. Default=3 ?>
         <property name="maxErrorCount" value="3"/>

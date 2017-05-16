@@ -28,7 +28,7 @@
         <!-- Location of file with list of uri's, each line contains a capability list uri -->
         <property name="uriListLocation" value="cfg/uri-list.txt"/>
         <!-- Location of directory that will contain synchronized resources and metadata -->
-        <property name="baseDirectory" value="destination"/>
+        <property name="baseDirectory" value="target/destination"/>
     </bean>
 
     <!-- Choose and configure a job-scheduler (or roll your own) -->
