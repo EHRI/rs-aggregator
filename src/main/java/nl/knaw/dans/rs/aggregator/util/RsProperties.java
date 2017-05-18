@@ -1,8 +1,8 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.util;
 
-import nl.knaw.dans.rs.aggregator.util.ZonedDateTimeUtil;
 import org.apache.commons.io.IOUtils;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -14,9 +14,10 @@ import java.util.Set;
 import java.util.TreeMap;
 
 /**
- * Created on 2017-05-01 09:27.
+ * An extension on {@link Properties} capable of storing different types and that can save an xml-representation
+ * of itself sorted on key.
  */
-public class SyncProperties extends Properties {
+public class RsProperties extends Properties {
 
 
   public Object setDateTime(String key, ZonedDateTime zdt) {
@@ -80,6 +81,7 @@ public class SyncProperties extends Properties {
 
   // xml output sorted on entry key.
   @Override
+  @Nonnull
   public Set<Map.Entry<Object, Object>> entrySet() {
     TreeMap<Object, Object> tm = new TreeMap<>();
     for (Map.Entry<Object, Object> entry : super.entrySet()) {

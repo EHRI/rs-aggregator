@@ -1,7 +1,7 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.syncore;
 
 /**
- * Created on 2017-05-18 10:57.
+ * A collection of keys for synchronisation properties.
  */
 public interface Sync {
   String CL = "cl."; // properties set by SitemapCollector

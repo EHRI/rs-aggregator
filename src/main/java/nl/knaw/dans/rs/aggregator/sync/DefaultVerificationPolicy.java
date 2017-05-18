@@ -1,9 +1,14 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
-import static nl.knaw.dans.rs.aggregator.sync.VerificationStatus.*;
+import nl.knaw.dans.rs.aggregator.syncore.VerificationPolicy;
+import nl.knaw.dans.rs.aggregator.syncore.VerificationStatus;
+
+import static nl.knaw.dans.rs.aggregator.syncore.VerificationStatus.*;
 
 /**
- * Created on 2017-04-24 14:42.
+ * A default {@link VerificationPolicy} that should be a valid policy under most circumstances where
+ * at least the hash and last modification date of a resource are given by Sources and these attributes
+ * are verifiable by the Destination.
  */
 public class DefaultVerificationPolicy implements VerificationPolicy {
 
@@ -14,27 +19,21 @@ public class DefaultVerificationPolicy implements VerificationPolicy {
   }
 
   @Override
-  public boolean repeatDownload(VerificationStatus stHash, VerificationStatus stLastMod, VerificationStatus stSize,
-                                int downloadCounter, boolean resourceExists) {
-    if (!resourceExists) {
-      return true;
+  public boolean repeatDownload(VerificationStatus stHash, VerificationStatus stLastMod, VerificationStatus stSize) {
+    if (stHash == verification_failure || stLastMod == verification_failure) {
+      return true; // keep strict policy on last modification date.
     } else if (stHash == verification_success) {
-      return false;
-    } else if (stLastMod == verification_success && stSize == verification_success) {
-      return false;
-    } else if (stHash == not_verified && stLastMod == not_verified && stSize == not_verified && downloadCounter >= 1) {
-      // no verification possible: repeat download once.
-      return false;
+      return false; // perfect.
+    } else if ((stLastMod == verification_success && stSize == verification_success)) {
+      return false; // will do if no hash is available.
+    } else if (stHash == not_verified && stLastMod == not_verified && stSize == not_verified) {
+      return true; // no verification possible: repeat download.
     }
-    return true;
+    return true; // under all other conditions.
   }
 
   @Override
-  public boolean isVerified(VerificationStatus stHash, VerificationStatus stLastMod, VerificationStatus stSize, boolean resourceExists) {
-    if (stHash == verification_success || (stLastMod == verification_success && stSize == verification_success)) {
-      return true;
-    } else {
-      return false;
-    }
+  public boolean isVerified(VerificationStatus stHash, VerificationStatus stLastMod, VerificationStatus stSize) {
+    return stHash == verification_success || (stLastMod == verification_success && stSize == verification_success);
   }
 }

@@ -1,6 +1,7 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.syncore;
 
 import nl.knaw.dans.rs.aggregator.util.NormURI;
+import nl.knaw.dans.rs.aggregator.util.RsProperties;
 import nl.knaw.dans.rs.aggregator.util.ZonedDateTimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Created on 2017-04-13 09:34.
+ * Class capable of finding its way in file system directories for resources, metadata and synchronisation properties
+ * for a given base directory and URI.
  */
 public class PathFinder {
 
@@ -75,7 +77,7 @@ public class PathFinder {
     String syncDate = ZonedDateTimeUtil.toFileSaveFormat(syncStart);
     syncPropXmlFile = new File(syncPropDirectory, syncDate + ".xml");
 
-    // Get the previously SyncProperties file ...
+    // Get the previously RsProperties file ...
     File[] prevSyncProps = syncPropDirectory.listFiles(new FileFilter() {
       @Override
       public boolean accept(File pathname) {
@@ -83,7 +85,7 @@ public class PathFinder {
         String filename = pathname.getName();
         if (filename.endsWith(".xml")) {
           // only include fully synchronized runs.
-          SyncProperties syncProps = new SyncProperties();
+          RsProperties syncProps = new RsProperties();
           try {
             syncProps.loadFromXML(pathname);
             accepted = syncProps.getBool(Sync.PROP_SW_FULLY_SYNCHRONIZED);

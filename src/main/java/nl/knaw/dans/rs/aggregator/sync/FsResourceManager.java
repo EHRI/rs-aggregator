@@ -2,8 +2,11 @@ package nl.knaw.dans.rs.aggregator.sync;
 
 import nl.knaw.dans.rs.aggregator.http.ResourceReader;
 import nl.knaw.dans.rs.aggregator.http.Result;
+import nl.knaw.dans.rs.aggregator.syncore.ResourceManager;
+import nl.knaw.dans.rs.aggregator.syncore.VerificationStatus;
 import nl.knaw.dans.rs.aggregator.util.FileCleaner;
 import nl.knaw.dans.rs.aggregator.util.HashUtil;
+import nl.knaw.dans.rs.aggregator.syncore.PathFinder;
 import nl.knaw.dans.rs.aggregator.util.ZonedDateTimeUtil;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;

@@ -1,5 +1,7 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
+import nl.knaw.dans.rs.aggregator.syncore.Sync;
+import nl.knaw.dans.rs.aggregator.util.RsProperties;
 import org.junit.Test;
 
 import java.io.File;
@@ -17,7 +19,7 @@ public class SyncPropertiesTest {
 
   @Test
   public void testPersist() throws Exception {
-    SyncProperties sp1 = new SyncProperties();
+    RsProperties sp1 = new RsProperties();
     File file1 = new File("target/test-output/syncproperties/syncprops-empty.xml");
     sp1.storeToXML(file1, "testPersist empty");
 
@@ -34,7 +36,7 @@ public class SyncPropertiesTest {
     sp1.storeToXML(file2, "testPersist full");
 
     //
-    SyncProperties sp2 = new SyncProperties();
+    RsProperties sp2 = new RsProperties();
     sp2.loadFromXML(file2);
 
     assertThat(sp2.getDateTime(Sync.PROP_SW_SYNC_START), equalTo(start));

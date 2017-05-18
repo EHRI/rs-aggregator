@@ -1,6 +1,9 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
 import nl.knaw.dans.rs.aggregator.http.Testing;
+import nl.knaw.dans.rs.aggregator.syncore.PathFinder;
+import nl.knaw.dans.rs.aggregator.syncore.SitemapConverterProvider;
+import nl.knaw.dans.rs.aggregator.util.RsProperties;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -26,12 +29,14 @@ public class LiveSyncWorkerTest {
   @Test
   public void testSynchronize() throws Exception {
     PathFinder pathFinder = new PathFinder(baseDirectory, URI.create(capabilityListUrl));
-    SyncProperties syncProps = new SyncProperties();
+    RsProperties syncProps = new RsProperties();
+    SitemapConverterProvider provider = new FsSitemapConverterProvider();
+    provider.setPathFinder(pathFinder);
     SyncWorker syncWorker = new SyncWorker()
       .withMaxDownloadRetry(3)
       .withTrialRun(false)
       //.withMaxDownloads(1000)
-      .withSitemapCollector(new SitemapCollector())
+      .withSitemapCollector(new SitemapCollector().withConverter(provider.getConverter()))
       .withResourceManager(new FsResourceManager());
 
       syncWorker.synchronize(pathFinder, syncProps);

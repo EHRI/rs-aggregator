@@ -1,4 +1,4 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.syncore;
 
 /**
  * Created on 2017-04-24 14:27.

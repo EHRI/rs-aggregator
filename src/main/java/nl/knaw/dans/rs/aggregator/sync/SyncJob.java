@@ -1,7 +1,13 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
 import nl.knaw.dans.rs.aggregator.schedule.Job;
+import nl.knaw.dans.rs.aggregator.syncore.ResourceManager;
+import nl.knaw.dans.rs.aggregator.syncore.SitemapConverterProvider;
+import nl.knaw.dans.rs.aggregator.syncore.SyncPostProcessor;
+import nl.knaw.dans.rs.aggregator.syncore.VerificationPolicy;
 import nl.knaw.dans.rs.aggregator.util.NormURI;
+import nl.knaw.dans.rs.aggregator.syncore.PathFinder;
+import nl.knaw.dans.rs.aggregator.util.RsProperties;
 import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -171,10 +177,10 @@ public class SyncJob implements Job {
 
     for (URI uri : uriList) {
       PathFinder pathFinder = new PathFinder(getBaseDirectory(), uri);
-      SyncProperties syncProps = new SyncProperties();
+      RsProperties syncProps = new RsProperties();
       sitemapConverterProvider.setPathFinder(pathFinder);
       syncWorker.synchronize(pathFinder, syncProps);
-      syncPostProcessor.postProcess(pathFinder, syncProps, sitemapCollector.getCurrentIndex());
+      syncPostProcessor.postProcess(sitemapCollector.getCurrentIndex(), pathFinder, syncProps);
     }
 
   }

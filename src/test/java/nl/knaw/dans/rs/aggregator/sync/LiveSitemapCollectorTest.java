@@ -1,13 +1,13 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
-import nl.knaw.dans.rs.aggregator.discover.ResultIndex;
 import nl.knaw.dans.rs.aggregator.http.Testing;
+import nl.knaw.dans.rs.aggregator.syncore.PathFinder;
+import nl.knaw.dans.rs.aggregator.syncore.SitemapConverterProvider;
+import nl.knaw.dans.rs.aggregator.util.RsProperties;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
 import java.net.URI;
-import java.time.ZonedDateTime;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -23,16 +23,17 @@ public class LiveSitemapCollectorTest {
 
   @BeforeClass
   public static void initialize() throws Exception {
-    assumeTrue(Testing.LIVE_TESTS);
+    //assumeTrue(Testing.LIVE_TESTS);
   }
 
   @Test
   public void testCollectSitemaps() throws Exception {
     PathFinder pathFinder = new PathFinder(baseDirectory, URI.create(capabilityListUrl));
-    SyncProperties syncProps = new SyncProperties();
-    SitemapCollector collector = new SitemapCollector();
-      //.withAsOfDateTime(ZonedDateTime.now());
-    //collector.collectSitemaps();
+    RsProperties syncProps = new RsProperties();
+    SitemapConverterProvider provider = new FsSitemapConverterProvider();
+    provider.setPathFinder(pathFinder);
+    SitemapCollector collector = new SitemapCollector()
+      .withConverter(provider.getConverter());
     collector.collectSitemaps(pathFinder, syncProps);
     assertThat(collector.getCountCapabilityLists(), is(1));
 

@@ -1,6 +1,8 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
+import nl.knaw.dans.rs.aggregator.syncore.SitemapConverterProvider;
 import nl.knaw.dans.rs.aggregator.util.LambdaUtil;
+import nl.knaw.dans.rs.aggregator.syncore.PathFinder;
 import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;
 import nl.knaw.dans.rs.aggregator.xml.RsBuilder;
 import nl.knaw.dans.rs.aggregator.xml.RsRoot;
@@ -22,7 +24,9 @@ import java.net.URI;
 import java.util.Date;
 
 /**
- * Created on 2017-05-08 10:13.
+ * A {@link SitemapConverterProvider} that provides a converter that both stores the response on disk and
+ * returns the response unmarshalled as {@link RsRoot}. The file location of the sitemap is decided by
+ * calling {@link PathFinder#findMetadataFilePath(URI)} for the given URI on the current PathFinder.
  */
 public class FsSitemapConverterProvider implements SitemapConverterProvider {
 
@@ -30,7 +34,6 @@ public class FsSitemapConverterProvider implements SitemapConverterProvider {
 
   private ResourceSyncContext rsContext;
   private PathFinder currentPathFinder;
-
 
   @Override
   public LambdaUtil.BiFunction_WithExceptions<URI, HttpResponse, RsRoot, Exception> getConverter() {

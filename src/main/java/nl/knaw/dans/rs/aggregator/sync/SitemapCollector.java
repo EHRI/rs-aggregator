@@ -4,8 +4,11 @@ import nl.knaw.dans.rs.aggregator.http.RemoteResourceSyncFrameworkException;
 import nl.knaw.dans.rs.aggregator.discover.ResultIndex;
 import nl.knaw.dans.rs.aggregator.discover.RsExplorer;
 import nl.knaw.dans.rs.aggregator.http.Result;
+import nl.knaw.dans.rs.aggregator.syncore.Sync;
 import nl.knaw.dans.rs.aggregator.util.NormURI;
 import nl.knaw.dans.rs.aggregator.util.LambdaUtil;
+import nl.knaw.dans.rs.aggregator.syncore.PathFinder;
+import nl.knaw.dans.rs.aggregator.util.RsProperties;
 import nl.knaw.dans.rs.aggregator.xml.Capability;
 import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;
 import nl.knaw.dans.rs.aggregator.xml.RsConstants;
@@ -204,7 +207,7 @@ public class SitemapCollector implements RsConstants {
     return foundNewResourceList;
   }
 
-  public void collectSitemaps(PathFinder pathFinder, SyncProperties syncProps) {
+  public void collectSitemaps(PathFinder pathFinder, RsProperties syncProps) {
     reset();
     RsExplorer explorer = new RsExplorer(getHttpClient(), getRsContext())
       .withConverter(getConverter())
@@ -232,7 +235,7 @@ public class SitemapCollector implements RsConstants {
   private void setNewResourceListFound(PathFinder pathFinder) {
     File prevSyncPropFile = pathFinder.getPrevSyncPropXmlFile();
     if (prevSyncPropFile != null) {
-      SyncProperties prevSyncProps = new SyncProperties();
+      RsProperties prevSyncProps = new RsProperties();
       try {
         prevSyncProps.loadFromXML(prevSyncPropFile);
         ZonedDateTime prevResourceListAt = prevSyncProps.getDateTime(Sync.PROP_CL_DATE_LATEST_RESOURCELIST);
@@ -243,7 +246,7 @@ public class SitemapCollector implements RsConstants {
     }
   }
 
-  private void reportResults(PathFinder pathFinder, SyncProperties syncProps) {
+  private void reportResults(PathFinder pathFinder, RsProperties syncProps) {
     syncProps.setDateTime(Sync.PROP_CL_AS_OF_DATE_TIME, asOfDateTime);
     syncProps.setProperty(Sync.PROP_CL_CONVERTER, getConverter().toString());
     syncProps.setInt(Sync.PROP_CL_COUNT_INVALID_URIS, invalidUris.size());

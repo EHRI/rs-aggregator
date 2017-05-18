@@ -1,5 +1,6 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.syncore;
 
+import nl.knaw.dans.rs.aggregator.syncore.PathFinder;
 import org.junit.Test;
 
 import java.io.File;

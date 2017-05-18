@@ -1,4 +1,4 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.syncore;
 
 import javax.annotation.Nonnull;
 import java.net.URI;

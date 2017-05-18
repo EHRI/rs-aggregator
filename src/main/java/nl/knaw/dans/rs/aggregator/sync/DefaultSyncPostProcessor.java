@@ -1,7 +1,11 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
 import nl.knaw.dans.rs.aggregator.discover.ResultIndex;
+import nl.knaw.dans.rs.aggregator.syncore.Sync;
+import nl.knaw.dans.rs.aggregator.syncore.SyncPostProcessor;
 import nl.knaw.dans.rs.aggregator.util.FileCleaner;
+import nl.knaw.dans.rs.aggregator.syncore.PathFinder;
+import nl.knaw.dans.rs.aggregator.util.RsProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +41,7 @@ public class DefaultSyncPostProcessor implements SyncPostProcessor {
   }
 
   @Override
-  public void postProcess(PathFinder pathFinder, SyncProperties syncProps, ResultIndex resultIndex) throws Exception {
+  public void postProcess(ResultIndex resultIndex, PathFinder pathFinder, RsProperties syncProps) throws Exception {
     int deletedMetadataFileCount = cleanUpMetadataDirectory(pathFinder, syncProps, resultIndex);
     int deletedSyncPropFileCount = cleanUpSyncProps(pathFinder, syncProps);
 
@@ -54,7 +58,7 @@ public class DefaultSyncPostProcessor implements SyncPostProcessor {
     }
   }
 
-  private int cleanUpMetadataDirectory(PathFinder pathFinder, SyncProperties syncProps, ResultIndex resultIndex) {
+  private int cleanUpMetadataDirectory(PathFinder pathFinder, RsProperties syncProps, ResultIndex resultIndex) {
     int deletedFiles = 0;
     if (syncProps.getBool(Sync.PROP_SW_FULLY_SYNCHRONIZED)) {
       Set<File> fileSet = pathFinder.findMetadataFilePaths(resultIndex.getResultMap().keySet());
@@ -69,7 +73,7 @@ public class DefaultSyncPostProcessor implements SyncPostProcessor {
     return deletedFiles;
   }
 
-  private int cleanUpSyncProps(PathFinder pathFinder, SyncProperties syncProps) {
+  private int cleanUpSyncProps(PathFinder pathFinder, RsProperties syncProps) {
     int deletedSyncProps = 0;
     File[] syncPropFiles = pathFinder.getSyncPropDirectory().listFiles(new FileFilter() {
       @Override
@@ -83,7 +87,7 @@ public class DefaultSyncPostProcessor implements SyncPostProcessor {
     Collections.reverse(syncPropList);
     int validSyncProps = 0;
     for (File file : syncPropList) {
-      SyncProperties sp = new SyncProperties();
+      RsProperties sp = new RsProperties();
       try {
         sp.loadFromXML(file);
         if (sp.getBool(Sync.PROP_SW_FULLY_SYNCHRONIZED)) validSyncProps++;

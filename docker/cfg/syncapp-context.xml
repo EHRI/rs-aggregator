@@ -4,18 +4,18 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
 	   					   http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <!-- sitemap-converter-provider is an implementation of nl.knaw.dans.rs.aggregator.sync.SitemapConverterProvider -->
+    <!-- sitemap-converter-provider is an implementationnl.knaw.dans.rs.aggregator.syncore.SitemapConverterProviderider -->
     <bean id="sitemap-converter-provider" class="nl.knaw.dans.rs.aggregator.sync.FsSitemapConverterProvider"/>
 
-    <!-- verification-policy is an implementation of nl.knaw.dans.rs.aggregator.sync.VerificationPolicy -->
+    <!-- verification-policy is an implementationnl.knaw.dans.rs.aggregator.syncore.VerificationPolicylicy -->
     <bean id="verification-policy" class="nl.knaw.dans.rs.aggregator.sync.DefaultVerificationPolicy"/>
 
-    <!-- resource-manager is an implementation of nl.knaw.dans.rs.aggregator.sync.ResourceManager -->
+    <!-- resource-manager is an implementationnl.knaw.dans.rs.aggregator.syncore.ResourceManagerager -->
     <bean id="resource-manager" class="nl.knaw.dans.rs.aggregator.sync.FsResourceManager"/>
 
-    <!-- sync-post-processor is an implementation of nl.knaw.dans.rs.aggregator.sync.SyncPostProcessor -->
+    <!-- sync-post-processor is an implementationnl.knaw.dans.rs.aggregator.syncore.SyncPostProcessorssor -->
     <bean id="sync-post-processor" class="nl.knaw.dans.rs.aggregator.sync.DefaultSyncPostProcessor">
-        <!-- How many most recent SyncProperties files should be kept -->
+        <!-- How many most recRsPropertiesties files should be kept -->
         <property name="keepValidSyncProps" value="10"/>
     </bean>
 

@@ -1,5 +1,11 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
+import nl.knaw.dans.rs.aggregator.syncore.PathFinder;
+import nl.knaw.dans.rs.aggregator.syncore.ResourceManager;
+import nl.knaw.dans.rs.aggregator.syncore.Sync;
+import nl.knaw.dans.rs.aggregator.syncore.VerificationPolicy;
+import nl.knaw.dans.rs.aggregator.syncore.VerificationStatus;
+import nl.knaw.dans.rs.aggregator.util.RsProperties;
 import nl.knaw.dans.rs.aggregator.xml.RsConstants;
 import nl.knaw.dans.rs.aggregator.xml.RsMd;
 import nl.knaw.dans.rs.aggregator.xml.UrlItem;
@@ -117,7 +123,7 @@ public class SyncWorker implements RsConstants {
     return this;
   }
 
-  public void synchronize(PathFinder pathFinder, SyncProperties syncProps) {
+  public void synchronize(PathFinder pathFinder, RsProperties syncProps) {
     reset();
     getResourceManager().setPathFinder(pathFinder);
     syncLocalResources(pathFinder, syncProps);
@@ -147,7 +153,7 @@ public class SyncWorker implements RsConstants {
     syncComplete = false;
   }
 
-  private void syncLocalResources(PathFinder pathFinder, SyncProperties syncProps) {
+  private void syncLocalResources(PathFinder pathFinder, RsProperties syncProps) {
     SitemapCollector collector = getSitemapCollector();
     collector.collectSitemaps(pathFinder, syncProps);
     if (collector.hasErrors()) {
@@ -295,14 +301,20 @@ public class SyncWorker implements RsConstants {
         stSize = resourceManager.verifySize(normalizedURI, maybeSize.get());
       }
     }
-    boolean verified = policy.isVerified(stHash, stLastMod, stSize, true);
+
+    if (policy.repeatDownload(stHash, stLastMod, stSize)) {
+      boolean success = actionAllowed(normalizedURI) && resourceManager.update(normalizedURI);
+      if (success) downloadCount++;
+    }
+
+    boolean verified = policy.isVerified(stHash, stLastMod, stSize);
     if (verified) verifiedItems++;
     logger.debug("Verification status={}, Hash={}, LastMod={}, Size={}, uri={}",
       verified, stHash, stLastMod, stSize, normalizedURI);
     return verified;
   }
 
-  private void report(PathFinder pathFinder, SyncProperties syncProps) {
+  private void report(PathFinder pathFinder, RsProperties syncProps) {
     ZonedDateTime syncEnd = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
 
     syncProps.setDateTime(Sync.PROP_SW_SYNC_START, pathFinder.getSyncStart());
