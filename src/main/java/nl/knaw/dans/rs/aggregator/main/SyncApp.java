@@ -23,13 +23,12 @@ public class SyncApp {
     "  /  _  | /___  / /__/ /*/_|*| / / | | / / | |  /  _  |  / ___/ / / | |  / /_| |  | |  / /  / / /  _  |  \n" +
     " /  / | | ___/ /      /*___ *|/ /__| |/ /__| | /  / | | / /____/ /__| | / ___  |  | | / /__/ / /  / | |  \n" +
     "/__/  |_|/____/      /_/   |_||______/|______//__/  |_|/______/|______//_/   |_|  |_| |_____/ /__/  |_|  \n" +
-    "__________________________________________________________________________________________________________";
+    "__________________________________________________________________________________________________________\n";
 
   private static Logger logger = LoggerFactory.getLogger(SyncApp.class);
 
   public static void main(String[] args) throws Exception {
     logger.info(RS_ART);
-    logger.info("starting rs-aggregator with {}", SyncApp.class.getName());
 
     String appContextLocation;
     if (args.length > 0) {

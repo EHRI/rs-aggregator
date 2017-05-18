@@ -16,6 +16,9 @@ ADD src /code/src
 ADD cfg /code/cfg
 RUN ["mvn", "package"]
 
+# Remove source
+RUN rm -R /code/src
+
 # Expose directories
 VOLUME /code/cfg \
        /code/logs \
