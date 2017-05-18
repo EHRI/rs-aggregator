@@ -25,31 +25,29 @@ import java.util.regex.Pattern;
 /**
  * Explores links that point to ResourceSync Framework Documents.
  *
- * <h3>1. Explore a HTML document URI.</h3>
- * <q>
+ * <h3>Explore a HTML document URI.</h3>
+ * <p>
  * A Capability List may be made discoverable by means of links provided either in an HTML document
  * [HTML Links, XHTML Links] or in an HTTP Link header [RFC 5988].
- * </q>
+ * </p>
  *
- * <h3>2. Explore Sitemap links in robots.txt.</h3>
- * <q>
+ * <h3>Explore Sitemap links in robots.txt.</h3>
+ * <p>
  *   A Resource List is a Sitemap and hence may be made discoverable via the established approach of adding
  *   a Sitemap directive to a Source's robots.txt file that has the URI of the Resource List as its value.
  *   If a Source supports multiple sets of resources, multiple directives may be added, one for each
  *   Resource List associated with a specific set of resources.
- * </q>
- * <q>
+ * </p>
+ * <p>
  *   In case a Source supports both regular Sitemaps and ResourceSync Sitemaps (Resource Lists) they
  *   may be made discoverable, again, by including multiple Sitemap directives...
- * </q>
+ * </p>
  * In the latter case, how a destination can distinguish between regular Sitemaps and ResourceSync Sitemaps is
  * not clear from the specification. Convention in naming?
  *
- * @see <a href="http://www.openarchives.org/rs/1.0/resourcesync#disco_links>
- *   http://www.openarchives.org/rs/1.0/resourcesync#disco_links</a>
+ * @see <a href="http://www.openarchives.org/rs/1.0/resourcesync#disco_links">resourcesync#disco_links</a>
  *
- * @see <a href="http://www.openarchives.org/rs/1.0/resourcesync#robots">
- *   http://www.openarchives.org/rs/1.0/resourcesync#robots</a>
+ * @see <a href="http://www.openarchives.org/rs/1.0/resourcesync#robots">resourcesync#robots</a>
  */
 public class LinkExplorer extends AbstractUriExplorer {
 

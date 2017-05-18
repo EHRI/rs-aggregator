@@ -7,7 +7,7 @@ package nl.knaw.dans.rs.aggregator.syncore;
  * The ResourceSync Specification is a framework. Depending on community-specific agreements, the hash,
  * last modification date and size of a resource may or may not be given as attributes on an item. Depending on the
  * specific implementation of the {@link ResourceManager} these attributes, if given, may or may not be
- * verifiable. A VerificationPolicy should adjust for these Source community and Destination specific
+ * verifiable. A VerificationPolicy should adjust for these Source community- and Destination-specific
  * circumstances.
  * </p>
  */

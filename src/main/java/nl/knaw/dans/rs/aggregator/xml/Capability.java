@@ -2,11 +2,10 @@ package nl.knaw.dans.rs.aggregator.xml;
 
 /**
  * A mandatory attribute in all ResourceSync documents.
- * <q>Defined values are resourcelist, changelist, resourcedump, changedump, resourcedump-manifest,
- * changedump-manifest, capabilitylist, and description.</q>
+ * <p>Defined values are resourcelist, changelist, resourcedump, changedump, resourcedump-manifest,
+ * changedump-manifest, capabilitylist, and description.</p>
  *
- * @see <a href="http://www.openarchives.org/rs/1.0/resourcesync#DocumentFormats">
- *   http://www.openarchives.org/rs/1.0/resourcesync#DocumentFormats</a>
+ * @see <a href="http://www.openarchives.org/rs/1.0/resourcesync#DocumentFormats">http://www.openarchives.org/rs/1.0/resourcesync#DocumentFormats</a>
  */
 public enum Capability {
 

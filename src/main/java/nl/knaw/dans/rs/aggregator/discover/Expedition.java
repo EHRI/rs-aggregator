@@ -17,15 +17,13 @@ import java.util.stream.Collectors;
  * parent documents and 'url/loc' or 'sitemap/loc' links to child documents.
  * This class enables exploration of, and navigation through such a network.
  *
- * <q>
  * ResourceSync provides three ways for a Destination to discover whether and how a Source supports ResourceSync.
  * <ul>
  *  <li>6.3.2 ResourceSync Well-Known URI</li>
  *  <li>6.3.3 Links</li>
  *  <li>6.3.4 robots.txt</li>
  * </ul>
- * </q>
- *
+ * <p>&nbsp;</p>
  * <ol>
  *  <li>The <i>Well-Known URI</i> points to a document with capability 'description'.</li>
  *  <li>The links in headers point to documents with capability 'capabilitylist'.</li>

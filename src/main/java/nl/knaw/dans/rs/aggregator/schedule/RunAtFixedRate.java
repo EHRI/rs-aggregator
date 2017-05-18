@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
  * <p>In the following examples <code>myJob</code> is an instance of a {@link Job} implementation.</p>
  * <p>
  *   Example: Run a Job every 10 minutes.
+ *  </p>
  *   <pre>
  *     RunAtFixedRate runAtFixedRate = new RunAtFixedRate();
  *     runAtFixedRate.setPeriod(10);
@@ -32,9 +33,9 @@ import java.util.concurrent.TimeUnit;
  *   10 minutes past the whole hour. This is because in our code snippet we didn't touch start time and so initial
  *   start time was counted from 00.00h. If the execution of <code>myJob</code> takes longer then the 10-minute
  *   period, the next execution will take place immediately after the ending of the previous one.
- * </p>
  * <p>
  *   Example: Run a Job at 06.42 every day.
+ * </p>
  *   <pre>
  *     RunAtFixedRate runAtFixedRate = new RunAtFixedRate();
  *     runAtFixedRate.setHourOfDay(6);
@@ -43,7 +44,6 @@ import java.util.concurrent.TimeUnit;
  *     runAtFixedRate.schedule(myJob);
  *   </pre>
  *   This will execute <code>myJob</code> every day at 06.42, starting from the first occasion counted from now.
- * </p>
  * <p>
  *   The scheduler can be stopped gracefully by creating a file 'cfg/stop', relative to the working directory.
  *   Upon detection, a currently executing job will be left to finish first, after which the scheduler will stop.
