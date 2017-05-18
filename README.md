@@ -20,13 +20,13 @@ from a list of `Sources`.
 
 1. Clone this repository to your local drive.
 ```bash
-# git clone https://github.com/EHRI/rs-aggregator.git
+git clone https://github.com/EHRI/rs-aggregator.git
 ```
 2. Start a [Docker](https://www.docker.com/) daemon (if it is not already running) switch to the 
  `docker` directory and run the start-script.
 ```bash
-# cd rs-aggregator/docker
-# ./start.sh
+cd rs-aggregator/docker
+./start.sh
 ```
 If you see the `rs-aggregator` logo...
 ```
@@ -43,7 +43,7 @@ then you have just built a Java8 capable docker container, imported required lib
 compiled, tested and packaged the source code and started the rs-aggregator application.
 To stop it you can run the stop-script.
 ```bash
-# ./stop.sh
+./stop.sh
 ```
 The aggregated resources are in `docker/destination`, grouped by host name of the `Sources`.
 `Sources` are synchronized per `set of resources` described by a `capabilityList`.
