@@ -1,4 +1,4 @@
-package nl.knaw.dans.rs.aggregator.discover;
+package nl.knaw.dans.rs.aggregator.http;
 
 /**
  * Signals that a remote source does not comply to the Resourcesync Framework specification.

@@ -1,8 +1,6 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.http;
 
 
-import nl.knaw.dans.rs.aggregator.http.AbstractUriReader;
-import nl.knaw.dans.rs.aggregator.http.Result;
 import nl.knaw.dans.rs.aggregator.util.LambdaUtil;
 import nl.knaw.dans.rs.aggregator.xml.ResourceSyncContext;
 import nl.knaw.dans.rs.aggregator.xml.RsBuilder;

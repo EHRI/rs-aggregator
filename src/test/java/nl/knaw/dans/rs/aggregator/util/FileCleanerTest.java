@@ -1,4 +1,4 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.util;
 
 import nl.knaw.dans.rs.aggregator.util.FileCleaner;
 import org.junit.Ignore;

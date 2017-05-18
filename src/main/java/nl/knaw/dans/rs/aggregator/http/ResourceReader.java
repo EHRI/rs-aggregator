@@ -1,7 +1,5 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.http;
 
-import nl.knaw.dans.rs.aggregator.http.AbstractUriReader;
-import nl.knaw.dans.rs.aggregator.http.Result;
 import nl.knaw.dans.rs.aggregator.util.LambdaUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;

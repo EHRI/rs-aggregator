@@ -1,6 +1,6 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
-import nl.knaw.dans.rs.aggregator.discover.RemoteResourceSyncFrameworkException;
+import nl.knaw.dans.rs.aggregator.http.RemoteResourceSyncFrameworkException;
 import nl.knaw.dans.rs.aggregator.discover.ResultIndex;
 import nl.knaw.dans.rs.aggregator.discover.RsExplorer;
 import nl.knaw.dans.rs.aggregator.http.Result;
@@ -235,7 +235,7 @@ public class SitemapCollector implements RsConstants {
       SyncProperties prevSyncProps = new SyncProperties();
       try {
         prevSyncProps.loadFromXML(prevSyncPropFile);
-        ZonedDateTime prevResourceListAt = prevSyncProps.getDateTime(SyncProperties.PROP_CL_DATE_LATEST_RESOURCELIST);
+        ZonedDateTime prevResourceListAt = prevSyncProps.getDateTime(Sync.PROP_CL_DATE_LATEST_RESOURCELIST);
         foundNewResourceList = ultimateResourceListAt.isAfter(prevResourceListAt);
       } catch (IOException e) {
         throw new RuntimeException("Could not load syncProps from " + prevSyncPropFile, e);
@@ -244,27 +244,27 @@ public class SitemapCollector implements RsConstants {
   }
 
   private void reportResults(PathFinder pathFinder, SyncProperties syncProps) {
-    syncProps.setDateTime(SyncProperties.PROP_CL_AS_OF_DATE_TIME, asOfDateTime);
-    syncProps.setProperty(SyncProperties.PROP_CL_CONVERTER, getConverter().toString());
-    syncProps.setInt(SyncProperties.PROP_CL_COUNT_INVALID_URIS, invalidUris.size());
-    syncProps.setInt(SyncProperties.PROP_CL_COUNT_ERROR_RESULTS, errorResults.size());
-    syncProps.setInt(SyncProperties.PROP_CL_COUNT_UNHNDLED_RESULTS, unhandledResults.size());
+    syncProps.setDateTime(Sync.PROP_CL_AS_OF_DATE_TIME, asOfDateTime);
+    syncProps.setProperty(Sync.PROP_CL_CONVERTER, getConverter().toString());
+    syncProps.setInt(Sync.PROP_CL_COUNT_INVALID_URIS, invalidUris.size());
+    syncProps.setInt(Sync.PROP_CL_COUNT_ERROR_RESULTS, errorResults.size());
+    syncProps.setInt(Sync.PROP_CL_COUNT_UNHNDLED_RESULTS, unhandledResults.size());
 
-    syncProps.setInt(SyncProperties.PROP_CL_COUNT_CAPABILITY_LISTS, countCapabilityLists);
-    syncProps.setInt(SyncProperties.PROP_CL_COUNT_RESOURCELIST_INDEXES, countResourceListIndexes);
-    syncProps.setInt(SyncProperties.PROP_CL_COUNT_CHANGELIST_INDEXES, countChangelistIndexes);
-    syncProps.setInt(SyncProperties.PROP_CL_COUNT_RESOURCELISTS, countResourceLists);
-    syncProps.setInt(SyncProperties.PROP_CL_COUNT_CHANGELISTS, countChangeLists);
+    syncProps.setInt(Sync.PROP_CL_COUNT_CAPABILITY_LISTS, countCapabilityLists);
+    syncProps.setInt(Sync.PROP_CL_COUNT_RESOURCELIST_INDEXES, countResourceListIndexes);
+    syncProps.setInt(Sync.PROP_CL_COUNT_CHANGELIST_INDEXES, countChangelistIndexes);
+    syncProps.setInt(Sync.PROP_CL_COUNT_RESOURCELISTS, countResourceLists);
+    syncProps.setInt(Sync.PROP_CL_COUNT_CHANGELISTS, countChangeLists);
 
-    syncProps.setDateTime(SyncProperties.PROP_CL_DATE_LATEST_RESOURCELIST, ultimateResourceListAt);
-    syncProps.setDateTime(SyncProperties.PROP_CL_DATE_LATEST_CHANGELIST, ultimateChangeListFrom);
-    syncProps.setBool(SyncProperties.PROP_CL_FOUND_NEW_RESOURCELIST, foundNewResourceList);
+    syncProps.setDateTime(Sync.PROP_CL_DATE_LATEST_RESOURCELIST, ultimateResourceListAt);
+    syncProps.setDateTime(Sync.PROP_CL_DATE_LATEST_CHANGELIST, ultimateChangeListFrom);
+    syncProps.setBool(Sync.PROP_CL_FOUND_NEW_RESOURCELIST, foundNewResourceList);
 
-    syncProps.setInt(SyncProperties.PROP_CL_ITEMS_RECENT, recentItems.size());
-    syncProps.setInt(SyncProperties.PROP_CL_ITEMS_REMAINING, countRemain);
-    syncProps.setInt(SyncProperties.PROP_CL_ITEMS_CREATED, countCreated);
-    syncProps.setInt(SyncProperties.PROP_CL_ITEMS_UPDATED, countUpdated);
-    syncProps.setInt(SyncProperties.PROP_CL_ITEMS_DELETED, countDeleted);
+    syncProps.setInt(Sync.PROP_CL_ITEMS_RECENT, recentItems.size());
+    syncProps.setInt(Sync.PROP_CL_ITEMS_REMAINING, countRemain);
+    syncProps.setInt(Sync.PROP_CL_ITEMS_CREATED, countCreated);
+    syncProps.setInt(Sync.PROP_CL_ITEMS_UPDATED, countUpdated);
+    syncProps.setInt(Sync.PROP_CL_ITEMS_DELETED, countDeleted);
 
     try {
       File file = pathFinder.getSyncPropXmlFile();

@@ -86,7 +86,7 @@ public class PathFinder {
           SyncProperties syncProps = new SyncProperties();
           try {
             syncProps.loadFromXML(pathname);
-            accepted = syncProps.getBool(SyncProperties.PROP_SW_FULLY_SYNCHRONIZED);
+            accepted = syncProps.getBool(Sync.PROP_SW_FULLY_SYNCHRONIZED);
           } catch (IOException e) {
             logger.warn("Could not read syncProps from {}", pathname, e);
           }

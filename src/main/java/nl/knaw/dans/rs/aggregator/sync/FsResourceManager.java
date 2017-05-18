@@ -1,5 +1,6 @@
 package nl.knaw.dans.rs.aggregator.sync;
 
+import nl.knaw.dans.rs.aggregator.http.ResourceReader;
 import nl.knaw.dans.rs.aggregator.http.Result;
 import nl.knaw.dans.rs.aggregator.util.FileCleaner;
 import nl.knaw.dans.rs.aggregator.util.HashUtil;

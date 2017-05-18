@@ -1,7 +1,8 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.http;
 
 import nl.knaw.dans.rs.aggregator.http.AbstractRemoteTest;
 import nl.knaw.dans.rs.aggregator.http.Result;
+import nl.knaw.dans.rs.aggregator.http.RsDocumentReader;
 import nl.knaw.dans.rs.aggregator.xml.Capability;
 import nl.knaw.dans.rs.aggregator.xml.RsRoot;
 import org.junit.Ignore;

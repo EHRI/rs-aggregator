@@ -1,7 +1,8 @@
-package nl.knaw.dans.rs.aggregator.sync;
+package nl.knaw.dans.rs.aggregator.http;
 
-import nl.knaw.dans.rs.aggregator.discover.RemoteException;
+import nl.knaw.dans.rs.aggregator.http.RemoteException;
 import nl.knaw.dans.rs.aggregator.http.AbstractRemoteTest;
+import nl.knaw.dans.rs.aggregator.http.ResourceReader;
 import nl.knaw.dans.rs.aggregator.http.Result;
 import org.junit.Test;
 import org.mockserver.matchers.Times;

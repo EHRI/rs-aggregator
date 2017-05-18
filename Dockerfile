@@ -21,5 +21,5 @@ VOLUME /code/cfg \
        /code/logs \
        /code/destination
 
-EXPOSE 4567
+# Execute the application upon container start
 CMD ["/usr/lib/jvm/java-8-openjdk-amd64/bin/java", "-jar", "target/rs-aggregator-jar-with-dependencies.jar"]

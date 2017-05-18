@@ -1,6 +1,5 @@
 package nl.knaw.dans.rs.aggregator.http;
 
-import nl.knaw.dans.rs.aggregator.discover.RemoteException;
 import nl.knaw.dans.rs.aggregator.util.LambdaUtil;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;

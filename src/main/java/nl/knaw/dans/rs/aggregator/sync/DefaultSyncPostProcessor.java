@@ -56,7 +56,7 @@ public class DefaultSyncPostProcessor implements SyncPostProcessor {
 
   private int cleanUpMetadataDirectory(PathFinder pathFinder, SyncProperties syncProps, ResultIndex resultIndex) {
     int deletedFiles = 0;
-    if (syncProps.getBool(SyncProperties.PROP_SW_FULLY_SYNCHRONIZED)) {
+    if (syncProps.getBool(Sync.PROP_SW_FULLY_SYNCHRONIZED)) {
       Set<File> fileSet = pathFinder.findMetadataFilePaths(resultIndex.getResultMap().keySet());
       FileCleaner fileCleaner = new FileCleaner(fileSet);
       try {
@@ -86,7 +86,7 @@ public class DefaultSyncPostProcessor implements SyncPostProcessor {
       SyncProperties sp = new SyncProperties();
       try {
         sp.loadFromXML(file);
-        if (sp.getBool(SyncProperties.PROP_SW_FULLY_SYNCHRONIZED)) validSyncProps++;
+        if (sp.getBool(Sync.PROP_SW_FULLY_SYNCHRONIZED)) validSyncProps++;
       } catch (IOException e) {
         logger.warn("Could not load properties from {}", file, e);
       }

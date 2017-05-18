@@ -305,31 +305,31 @@ public class SyncWorker implements RsConstants {
   private void report(PathFinder pathFinder, SyncProperties syncProps) {
     ZonedDateTime syncEnd = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
 
-    syncProps.setDateTime(SyncProperties.PROP_SW_SYNC_START, pathFinder.getSyncStart());
-    syncProps.setDateTime(SyncProperties.PROP_SW_SYNC_END, syncEnd);
-    syncProps.setBool(SyncProperties.PROP_SW_FULLY_SYNCHRONIZED, syncComplete);
+    syncProps.setDateTime(Sync.PROP_SW_SYNC_START, pathFinder.getSyncStart());
+    syncProps.setDateTime(Sync.PROP_SW_SYNC_END, syncEnd);
+    syncProps.setBool(Sync.PROP_SW_FULLY_SYNCHRONIZED, syncComplete);
 
-    syncProps.setInt(SyncProperties.PROP_SW_MAX_DOWNLOADS, getMaxDownloads());
-    syncProps.setInt(SyncProperties.PROP_SW_MAX_DOWNLOAD_RETRY, getMaxDownloadRetry());
-    syncProps.setBool(SyncProperties.PROP_SW_TRIAL_RUN, isTrialRun());
-    syncProps.setProperty(SyncProperties.PROP_SW_SITEMAP_COLLECTOR, getSitemapCollector().getClass().getName());
-    syncProps.setProperty(SyncProperties.PROP_SW_RESOURCE_MANAGER, getResourceManager().getClass().getName());
-    syncProps.setProperty(SyncProperties.PROP_SW_VERIFICATION_POLICY, getVerificationPolicy().getClass().getName());
+    syncProps.setInt(Sync.PROP_SW_MAX_DOWNLOADS, getMaxDownloads());
+    syncProps.setInt(Sync.PROP_SW_MAX_DOWNLOAD_RETRY, getMaxDownloadRetry());
+    syncProps.setBool(Sync.PROP_SW_TRIAL_RUN, isTrialRun());
+    syncProps.setProperty(Sync.PROP_SW_SITEMAP_COLLECTOR, getSitemapCollector().getClass().getName());
+    syncProps.setProperty(Sync.PROP_SW_RESOURCE_MANAGER, getResourceManager().getClass().getName());
+    syncProps.setProperty(Sync.PROP_SW_VERIFICATION_POLICY, getVerificationPolicy().getClass().getName());
 
-    syncProps.setInt(SyncProperties.PROP_SW_TOTAL_ITEMS, itemCount);
-    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_VERIFIED, verifiedItems);
-    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_DELETED, itemsDeleted);
-    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_CREATED, itemsCreated);
-    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_UPDATED, itemsUpdated);
-    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_REMAIN, itemsRemain);
-    syncProps.setInt(SyncProperties.PROP_SW_ITEMS_NO_ACTION, itemsNoAction);
-    syncProps.setInt(SyncProperties.PROP_SW_TOTAL_FAILED_ITEMS, totalFailures);
-    syncProps.setInt(SyncProperties.PROP_SW_FAILED_DELETIONS, failedDeletions);
-    syncProps.setInt(SyncProperties.PROP_SW_FAILED_CREATIONS, failedCreations);
-    syncProps.setInt(SyncProperties.PROP_SW_FAILED_UPDATES, failedUpdates);
-    syncProps.setInt(SyncProperties.PROP_SW_FAILED_REMAINS, failedRemains);
+    syncProps.setInt(Sync.PROP_SW_TOTAL_ITEMS, itemCount);
+    syncProps.setInt(Sync.PROP_SW_ITEMS_VERIFIED, verifiedItems);
+    syncProps.setInt(Sync.PROP_SW_ITEMS_DELETED, itemsDeleted);
+    syncProps.setInt(Sync.PROP_SW_ITEMS_CREATED, itemsCreated);
+    syncProps.setInt(Sync.PROP_SW_ITEMS_UPDATED, itemsUpdated);
+    syncProps.setInt(Sync.PROP_SW_ITEMS_REMAIN, itemsRemain);
+    syncProps.setInt(Sync.PROP_SW_ITEMS_NO_ACTION, itemsNoAction);
+    syncProps.setInt(Sync.PROP_SW_TOTAL_FAILED_ITEMS, totalFailures);
+    syncProps.setInt(Sync.PROP_SW_FAILED_DELETIONS, failedDeletions);
+    syncProps.setInt(Sync.PROP_SW_FAILED_CREATIONS, failedCreations);
+    syncProps.setInt(Sync.PROP_SW_FAILED_UPDATES, failedUpdates);
+    syncProps.setInt(Sync.PROP_SW_FAILED_REMAINS, failedRemains);
 
-    syncProps.setInt(SyncProperties.PROP_SW_TOTAL_DOWNLOAD_COUNT, downloadCount);
+    syncProps.setInt(Sync.PROP_SW_TOTAL_DOWNLOAD_COUNT, downloadCount);
 
     try {
       File file = pathFinder.getSyncPropXmlFile();
