@@ -10,16 +10,20 @@ Aggregate [ResourceSync](http://www.openarchives.org/rs/1.0.9/resourcesync) Sour
 
 The `Destination` in a 
 [ResourceSync Framework](http://www.openarchives.org/rs/1.0.9/resourcesync) configuration keeps zero or 
-more `sets of resources` from zero or more `Sources` synchronized.
+more `sets of resources` from zero or more `Sources` synchronized. 
+See: [Definitions](http://www.openarchives.org/rs/1.1/resourcesync#Definitions)
+
+`rs-aggregator` can be used, out-of-the-box, as such a `Destination` that aggregates `sets of resources`
+from a list of `Sources`.
 
 ## Quick start
 
-1. Clone this repository to your local drive
+1. Clone this repository to your local drive.
 ```bash
 # git clone https://github.com/EHRI/rs-aggregator.git
 ```
 2. Start a [Docker](https://www.docker.com/) daemon, if it is not already running, switch to the 
- `docker` directory and run the start-script
+ `docker` directory and run the start-script.
 ```bash
 # cd docker
 # ./start.sh
