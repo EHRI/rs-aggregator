@@ -34,7 +34,8 @@ If you see the `rs-aggregator` logo...
 
 then you have just built a Java8 capable docker container, imported required libraries,
 compiled, tested and packaged the source code and started the rs-aggregator application.
-To stop it you can run the stop-script.
+To gracefully stop the aggregator (without interrupting a synchronisation run)
+you can run the stop-script.
 ```bash
 ./stop.sh
 ```
