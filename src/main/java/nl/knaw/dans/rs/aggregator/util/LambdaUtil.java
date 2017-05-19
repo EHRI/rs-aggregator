@@ -1,6 +1,8 @@
 package nl.knaw.dans.rs.aggregator.util;
 
-
+/**
+ * Extended functions.
+ */
 public class LambdaUtil {
 
   /**

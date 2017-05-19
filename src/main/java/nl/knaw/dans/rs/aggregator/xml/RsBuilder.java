@@ -19,6 +19,10 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.util.Optional;
 
+/**
+ * Utility class for building {@link RsRoot} class hierarchies. The concrete RsRoot is either a
+ * {@link Urlset} or a {@link Sitemapindex}.
+ */
 public class RsBuilder {
 
   private final ResourceSyncContext rsContext;
@@ -37,10 +41,36 @@ public class RsBuilder {
   private Urlset urlset;
   private Sitemapindex sitemapindex;
 
+  /**
+   * Constructor.
+   *
+   * @param rsContext ResourceSyncContext can be reused over multiple instances of RsBuilder.
+   */
   public RsBuilder(ResourceSyncContext rsContext) {
     this.rsContext = rsContext;
   }
 
+  /**
+   * Build a class hierarchy from the input previously given with one of <code>set</code>-methods.
+   * <p>Example usage:</p>
+   * <pre>
+   *   RsBuilder rsBuilder = new RsBuilder(new ResourceSyncContext());
+   *   Optional&lt;RsRoot&gt; maybeRoot = rsBuilder.setInputStream(inStream).build();
+   * </pre>
+   * <p>We can test what concrete class was unmarshalled by obtaining the QName:</p>
+   * <pre>
+   *   Optional&lt;QName&gt; maybeQName = rsBuilder.getQName();
+   * </pre>
+   * <p>Or directly test one of two possibilities:</p>
+   * <pre>
+   *   Optional&lt;Sitemapindex&gt; maybeSitemapindex = rsBuilder.getSitemapindex();
+   *   Optional&lt;Urlset&gt; maybeUrlset = rsBuilder.getUrlset();
+   * </pre>
+   *
+   *
+   * @return Optional of RsRoot
+   * @throws JAXBException for invalid input
+   */
   @SuppressWarnings ("unchecked")
   public Optional<RsRoot> build() throws JAXBException {
     latestQName = null;
@@ -91,14 +121,31 @@ public class RsBuilder {
     return Optional.ofNullable(rsRoot);
   }
 
+  /**
+   * Get an optional of the QName of the latest unmarshalled document. Either <code>null</code>,
+   * {@link Sitemapindex#QNAME} or {@link Urlset#QNAME}.
+   *
+   * @return optional of QName of latest unmarshalled document
+   */
   public Optional<QName> getQName() {
     return Optional.ofNullable(latestQName);
   }
 
+  /**
+   * Get an optional Urlset of the latest unmarshalled document. Either <code>null</code>, or {@link Urlset}.
+   *
+   * @return optional of Urlset
+   */
   public Optional<Urlset> getUrlset() {
     return Optional.ofNullable(urlset);
   }
 
+  /**
+   * Get an optional Sitemapindex of the latest unmarshalled document. Either <code>null</code>,
+   * or {@link Sitemapindex}.
+   *
+   * @return optional of Sitemapindex
+   */
   public Optional<Sitemapindex> getSitemapindex() {
     return Optional.ofNullable(sitemapindex);
   }
@@ -148,6 +195,14 @@ public class RsBuilder {
     return this;
   }
 
+  /**
+   * Marshal a class hierarchy to its xml-representation.
+   *
+   * @param rsRoot the root class of the class hierarchy to marshal
+   * @param formattedOutput format the output as pretty xml
+   * @return xml representation as String
+   * @throws JAXBException for invalid input
+   */
   public String toXml(RsRoot rsRoot, boolean formattedOutput) throws JAXBException {
     Marshaller marshaller = rsContext.createMarshaller();
     marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, formattedOutput);

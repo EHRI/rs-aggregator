@@ -7,7 +7,7 @@ import java.net.URISyntaxException;
 import java.util.Optional;
 
 /**
- * Created on 2017-04-18 10:19.
+ * Normalize URI's to a standard format.
  */
 public class NormURI {
 

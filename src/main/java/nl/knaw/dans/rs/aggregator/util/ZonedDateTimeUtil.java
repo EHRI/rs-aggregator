@@ -11,7 +11,7 @@ import java.time.temporal.ChronoField;
 import java.util.Date;
 
 /**
- * Created on 2017-04-28 13:49.
+ * Utility class for conversion of {@link ZonedDateTime}s to and from other representations.
  */
 public class ZonedDateTimeUtil {
 

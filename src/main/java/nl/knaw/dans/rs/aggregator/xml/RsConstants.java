@@ -1,7 +1,7 @@
 package nl.knaw.dans.rs.aggregator.xml;
 
 /**
- * Created on 2017-04-27 10:30.
+ * Constants related to the representation of ResourceSync documents as xml.
  */
 public interface RsConstants {
 

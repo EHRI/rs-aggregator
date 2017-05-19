@@ -14,8 +14,8 @@ import java.util.Set;
 import java.util.TreeMap;
 
 /**
- * An extension on {@link Properties} capable of storing different types and that can save an xml-representation
- * of itself sorted on key.
+ * An extension on {@link Properties} that can save an xml-representation
+ * of itself sorted on key. Several type conversions can be used.
  */
 public class RsProperties extends Properties {
 
@@ -63,7 +63,7 @@ public class RsProperties extends Properties {
     try {
       fos = new FileOutputStream(file);
       keys();
-      storeToXML(fos, comment);
+      super.storeToXML(fos, comment);
     } finally {
       IOUtils.closeQuietly(fos);
     }
@@ -79,7 +79,12 @@ public class RsProperties extends Properties {
     }
   }
 
-  // xml output sorted on entry key.
+  /**
+   * Enables xml output sorted on entry key. This method should not be called directly, it is used
+   * in {@link RsProperties#storeToXML(File, String)}.
+   *
+   * @return entrySet sorted on key values
+   */
   @Override
   @Nonnull
   public Set<Map.Entry<Object, Object>> entrySet() {

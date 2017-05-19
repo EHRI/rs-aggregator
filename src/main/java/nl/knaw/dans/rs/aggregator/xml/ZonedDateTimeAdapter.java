@@ -42,7 +42,6 @@ import java.time.ZonedDateTime;
 */
 public class ZonedDateTimeAdapter extends XmlAdapter<String, ZonedDateTime> {
 
-
   @Override
   public ZonedDateTime unmarshal(String value) throws Exception {
     return ZonedDateTimeUtil.fromXmlString(value);

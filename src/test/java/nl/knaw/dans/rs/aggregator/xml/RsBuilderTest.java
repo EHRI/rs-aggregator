@@ -5,10 +5,12 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;

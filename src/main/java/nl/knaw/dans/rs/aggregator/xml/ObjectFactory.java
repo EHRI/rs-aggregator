@@ -4,6 +4,9 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
 
+/**
+ * Factory class for creating the root elements of sitemaps: &lt;urlset&gt; and &lt;sitemapindex&gt;.
+ */
 @XmlRegistry
 public class ObjectFactory {
 

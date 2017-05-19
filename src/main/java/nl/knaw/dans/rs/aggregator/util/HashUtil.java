@@ -9,7 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * Created on 2017-04-28 13:05.
+ * Compute the hash over inputStreams.
  */
 public class HashUtil {
 

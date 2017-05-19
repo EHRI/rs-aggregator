@@ -6,6 +6,10 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+/**
+ * JAXBContext for marshalling and unmarshalling of ResourceSync documents.
+ * This class uses the {@link ObjectFactory} class.
+ */
 public class ResourceSyncContext {
 
   private final JAXBContext jaxbContext;
