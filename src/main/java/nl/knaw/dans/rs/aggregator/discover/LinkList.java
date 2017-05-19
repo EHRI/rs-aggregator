@@ -6,6 +6,9 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * List of links, keeping track of valid and invalid URI's.
+ */
 public class LinkList {
 
   private Set<URI> validUris = new TreeSet<>();
