@@ -29,7 +29,9 @@ cd rs-aggregator/docker
 ./start.sh
 ```
 If you see the `rs-aggregator` logo...
+
 ![logo](docs/img/logo.png)
+
 then you have just built a Java8 capable docker container, imported required libraries,
 compiled, tested and packaged the source code and started the rs-aggregator application.
 To stop it you can run the stop-script.
