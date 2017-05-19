@@ -7,6 +7,26 @@
     <groupId>nl.knaw.dans</groupId>
     <artifactId>rs-aggregator</artifactId>
     <version>1.0.0</version>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Library containing classes and interfaces to set up an aggregator as the Destination within
+        the ResourceSync Framework Specification.</description>
+    <url>https://github.com/EHRI/rs-aggregator</url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>henk van den berg</name>
+            <email>henkvandenberg8@gmail.com</email>
+            <organization>DANS-KNAW</organization>
+            <organizationUrl>https://dans.knaw.nl</organizationUrl>
+        </developer>
+    </developers>
 
     <prerequisites>
         <maven>3.0</maven>
@@ -168,7 +188,43 @@
                 <version>2.10.4</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
+
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-javadoc</goal>
+                        </goals>
+                        <phase>site-deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!-- Deploy the web site -->
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>0.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>site</goal>
+                        </goals>
+                        <!-- select the Maven phase in which the plugin will be executed -->
+                        <phase>site-deploy</phase>
+                        <configuration>
+                            <!-- Plugin configuration goes here -->
+
+                            <server>github</server>
+
+                            <!-- The commit message -->
+                            <message>Building site for ${project.name}</message>
+                            <!-- The location where the site is uploaded -->
+                            <path>${project.version}</path>
+                            <!-- Use merge or override the content -->
+                            <merge>true</merge>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

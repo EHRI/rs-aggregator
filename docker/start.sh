@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cd `dirname $0`
+
 DOCKER_IMAGE="bhenk/rs-aggregator"
 CONTAINER_NAME="rs_aggregator"
 # Docker volumes can only be mounted on absolute files.
