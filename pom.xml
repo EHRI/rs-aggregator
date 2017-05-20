@@ -201,7 +201,7 @@
                 <version>2.10.4</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <outputDirectory>${project.basedir}/docs</outputDirectory>
+                    <outputDirectory>${project.basedir}/docs/apidocs</outputDirectory>
                 </configuration>
                 <executions>
                     <execution>
