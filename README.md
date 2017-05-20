@@ -4,6 +4,7 @@ Aggregate [ResourceSync](http://www.openarchives.org/rs/1.0.9/resourcesync) Sour
 ---
 - The component in this repository is intended for system administrators and developers.
 - Source location: [https://github.com/EHRI/rs-aggregator](https://github.com/EHRI/rs-aggregator).
+- Documentation: [https://ehri.github.io/rs-aggregator/](https://ehri.github.io/rs-aggregator/).
 - In case of questions [contact](https://github.com/EHRI/rs-aggregator/issues/new) the EHRI team.
 
 ---
