@@ -19,10 +19,8 @@ from a list of `Sources`.
 
 ## Docker quick start
 
-1. Clone this repository to your local drive.
-```bash
-git clone https://github.com/EHRI/rs-aggregator.git
-```
+1. Clone or download this repository to your local drive.
+
 2. Start a [Docker](https://www.docker.com/) daemon (if it is not already running) switch to the 
  `docker` directory and run the start-script.
 ```bash

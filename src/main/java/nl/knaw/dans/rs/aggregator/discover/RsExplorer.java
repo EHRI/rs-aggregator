@@ -23,6 +23,19 @@ import java.util.List;
 
 /**
  * Download ResourceSync Framework documents.
+ * <p>
+ *   RsExplorer can be used to selectively explore the hierarchy of ResourceSync sitemaps at a remote site.
+ *   In addition to this, it also verifies the validity of the various links between these sitemaps.
+ *   The result of each request to an individual URI is gathered in a {@link Result}; all results are
+ *   gathered in a {@link ResultIndex}.
+ * </p>
+ * <p>
+ *   RsExplorer can begin with any URI that points to a ResourceSync sitemap on the site
+ *   that is the subject of exploration, regardless of what capability that start document may have. With default
+ *   settings RsExplorer will navigate and index the complete tree of documents.
+ *   There are three switches to influence the path the RsExplorer will take through the sitemap tree:
+ *   {@link #followParentLinks}, {@link #followChildLinks} and {@link #followIndexLinks}.
+ * </p>
  */
 public class RsExplorer extends AbstractUriExplorer {
 
@@ -39,6 +52,14 @@ public class RsExplorer extends AbstractUriExplorer {
     this.rsContext = rsContext;
   }
 
+  /**
+   * Follow links in child element &lt;rs:ln&gt; of &lt;urlset&gt;
+   * with the relation type <code>up</code>. Default is <code>true</code>. Set to <code>false</code>
+   * if you want to prevent following links to parent documents.
+   *
+   * @param follow <code>true</code> if following parent links, <code>false</code> otherwise.
+   * @return <code>this</code> to enable method chaining
+   */
   public RsExplorer withFollowParentLinks(boolean follow) {
     followParentLinks = follow;
     return this;
