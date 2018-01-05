@@ -379,7 +379,8 @@ public class SitemapCollector implements RsConstants {
       logger.warn("Missing required md:at attribute on resourceList at {}", usResult);
       return;
     }
-    if (listAt.isAfter(getAsOfDateTime())) {
+    Optional<ZonedDateTime> maybeListCompletedAt = resourcelist.getMetadata().getCompleted();
+    if( ! maybeListCompletedAt.isPresent() || maybeListCompletedAt.get().isAfter(getAsOfDateTime()) ){
       countResourceLists++;
 
       // walk item list
@@ -394,8 +395,7 @@ public class SitemapCollector implements RsConstants {
         mergeItem(usResult, item);
       }
     } else {
-      logger.info("Skipping resourceList because {} <= {}", listAt, getAsOfDateTime());
-      logger.debug("Skipping resourceList because {} <= {}: {}", listAt, getAsOfDateTime(), usResult);
+      logger.debug("Skipping resourceList because completed date {} <= {}: {}", listAt, getAsOfDateTime(), usResult);
     }
   }
 
@@ -417,7 +417,9 @@ public class SitemapCollector implements RsConstants {
       return;
     }
 
-    if (listFrom.isAfter(getAsOfDateTime())) {
+    Optional<ZonedDateTime> maybeListUntil = changelist.getMetadata().getUntil();
+//    if (listFrom.isAfter(getAsOfDateTime())) {
+    if ( ! maybeListUntil.isPresent() || maybeListUntil.get().isAfter(getAsOfDateTime())) {
       countChangeLists++;
 
       // walk item list
@@ -427,36 +429,43 @@ public class SitemapCollector implements RsConstants {
         Optional<ZonedDateTime> dateTime = item.getMetadata().flatMap(RsMd::getDateTime);
         if (!dateTime.isPresent()) item.getMetadata().map(rsMd1 -> rsMd1.withFrom(listFrom));
 
-        // keep count of changes
-        Optional<String> maybeChange = item.getMetadata().flatMap(RsMd::getChange);
-        if (maybeChange.isPresent()) {
-          String change = maybeChange.get();
-          if (CH_CREATED.equalsIgnoreCase(change)) {
-            countCreated++;
-          } else if (CH_UPDATED.equalsIgnoreCase(change)) {
-            countUpdated++;
-          } else if (CH_DELETED.equalsIgnoreCase(change)) {
-            countDeleted++;
-          } else {
-            usResult.addError(
-              new RemoteResourceSyncFrameworkException("Unrecognized md:change attribute on changeList: " + change));
+        if(item.getRsMdDateTime().isAfter(getAsOfDateTime())) {
+          // keep count of changes
+          Optional<String> maybeChange = item.getMetadata().flatMap(RsMd::getChange);
+          if (maybeChange.isPresent()) {
+            String change = maybeChange.get();
+            if (CH_CREATED.equalsIgnoreCase(change)) {
+              countCreated++;
+            }
+            else if (CH_UPDATED.equalsIgnoreCase(change)) {
+              countUpdated++;
+            }
+            else if (CH_DELETED.equalsIgnoreCase(change)) {
+              countDeleted++;
+            }
+            else {
+              usResult.addError(new RemoteResourceSyncFrameworkException(
+                  "Unrecognized md:change attribute on changeList: " + change));
+              errorResults.add(usResult);
+              logger.warn("Unrecognized md:change attribute on changeList '{} : {}", change,
+                  usResult);
+              return;
+            }
+          }
+          else {
+            usResult.addError(new RemoteResourceSyncFrameworkException(
+                "Missing required md:change attribute on changeList"));
             errorResults.add(usResult);
-            logger.warn("Unrecognized md:change attribute on changeList '{} : {}", change, usResult);
+            logger.warn("Missing required md:change attribute on changeList: {}", usResult);
             return;
           }
-        } else {
-          usResult.addError(new RemoteResourceSyncFrameworkException("Missing required md:change attribute on changeList"));
-          errorResults.add(usResult);
-          logger.warn("Missing required md:change attribute on changeList: {}", usResult);
-          return;
-        }
 
-        // merge item with recentItems
-        mergeItem(usResult, item);
+          // merge item with recentItems
+          mergeItem(usResult, item);
+        }
       }
     } else {
-      logger.info("Skipping changeList because {} <= {}", listFrom, getAsOfDateTime());
-      logger.debug("Skipping changeList because {} <= {}: {}", listFrom, getAsOfDateTime(), usResult);
+      logger.debug("Skipping changeList because until date {} <= {}: {}", listFrom, getAsOfDateTime(), usResult);
     }
   }
 

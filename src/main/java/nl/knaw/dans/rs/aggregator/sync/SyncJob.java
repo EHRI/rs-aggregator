@@ -202,11 +202,7 @@ public class SyncJob implements Job {
         throw new RuntimeException("Could not load syncProps from " + prevSyncPropFile, e);
       }
     }
-    if(latestSyncRun != null) {
-      sitemapCollector.withAsOfDateTime(latestSyncRun);
-    }else{
-      sitemapCollector.withAsOfDateTime(null);
-    }
+    sitemapCollector.withAsOfDateTime(latestSyncRun);
     logger.info("only looking at item-events after {}", sitemapCollector.getAsOfDateTime());
   }
 
