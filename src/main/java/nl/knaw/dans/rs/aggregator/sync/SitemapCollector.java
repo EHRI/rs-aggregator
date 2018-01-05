@@ -195,7 +195,7 @@ public class SitemapCollector implements RsConstants {
     return ultimateChangeListFrom;
   }
 
-  public ZonedDateTime getUltmateListDate() {
+  public ZonedDateTime getUltimateListDate() {
     return ultimateChangeListFrom.isAfter(ultimateResourceListAt) ? ultimateChangeListFrom : ultimateResourceListAt;
   }
 
@@ -379,7 +379,6 @@ public class SitemapCollector implements RsConstants {
       logger.warn("Missing required md:at attribute on resourceList at {}", usResult);
       return;
     }
-
     if (listAt.isAfter(getAsOfDateTime())) {
       countResourceLists++;
 
@@ -395,7 +394,8 @@ public class SitemapCollector implements RsConstants {
         mergeItem(usResult, item);
       }
     } else {
-      logger.info("Skipping resourceList because {} <= {}: {}", listAt, getAsOfDateTime(), usResult);
+      logger.info("Skipping resourceList because {} <= {}", listAt, getAsOfDateTime());
+      logger.debug("Skipping resourceList because {} <= {}: {}", listAt, getAsOfDateTime(), usResult);
     }
   }
 
@@ -455,7 +455,8 @@ public class SitemapCollector implements RsConstants {
         mergeItem(usResult, item);
       }
     } else {
-      logger.info("Skipping changeList because {} <= {}: {}", listFrom, getAsOfDateTime(), usResult);
+      logger.info("Skipping changeList because {} <= {}", listFrom, getAsOfDateTime());
+      logger.debug("Skipping changeList because {} <= {}: {}", listFrom, getAsOfDateTime(), usResult);
     }
   }
 

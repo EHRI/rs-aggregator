@@ -3,6 +3,7 @@ package nl.knaw.dans.rs.aggregator.sync;
 import nl.knaw.dans.rs.aggregator.schedule.Job;
 import nl.knaw.dans.rs.aggregator.syncore.ResourceManager;
 import nl.knaw.dans.rs.aggregator.syncore.SitemapConverterProvider;
+import nl.knaw.dans.rs.aggregator.syncore.Sync;
 import nl.knaw.dans.rs.aggregator.syncore.SyncPostProcessor;
 import nl.knaw.dans.rs.aggregator.syncore.VerificationPolicy;
 import nl.knaw.dans.rs.aggregator.util.NormURI;
@@ -16,8 +17,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
@@ -177,12 +181,33 @@ public class SyncJob implements Job {
 
     for (URI uri : uriList) {
       PathFinder pathFinder = new PathFinder(getBaseDirectory(), uri);
-      RsProperties syncProps = new RsProperties();
-      sitemapConverterProvider.setPathFinder(pathFinder);
-      syncWorker.synchronize(pathFinder, syncProps);
-      syncPostProcessor.postProcess(sitemapCollector.getCurrentIndex(), pathFinder, syncProps);
-    }
+      RsProperties currentSyncProps = new RsProperties();
+      setLatestSyncRun(pathFinder, sitemapCollector);
 
+      sitemapConverterProvider.setPathFinder(pathFinder);
+      syncWorker.synchronize(pathFinder, currentSyncProps);
+      syncPostProcessor.postProcess(sitemapCollector.getCurrentIndex(), pathFinder, currentSyncProps);
+    }
+  }
+
+  private void setLatestSyncRun(PathFinder pathFinder, SitemapCollector sitemapCollector) {
+    File prevSyncPropFile = pathFinder.getPrevSyncPropXmlFile();
+    ZonedDateTime latestSyncRun = null;
+    if (prevSyncPropFile != null) {
+      RsProperties prevSyncProps = new RsProperties();
+      try {
+        prevSyncProps.loadFromXML(prevSyncPropFile);
+        latestSyncRun = prevSyncProps.getDateTime(Sync.PROP_SW_SYNC_START);
+      } catch (IOException e) {
+        throw new RuntimeException("Could not load syncProps from " + prevSyncPropFile, e);
+      }
+    }
+    if(latestSyncRun != null) {
+      sitemapCollector.withAsOfDateTime(latestSyncRun);
+    }else{
+      sitemapCollector.withAsOfDateTime(null);
+    }
+    logger.info("only looking at item-events after {}", sitemapCollector.getAsOfDateTime());
   }
 
   @Override
