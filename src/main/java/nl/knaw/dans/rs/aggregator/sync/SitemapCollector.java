@@ -224,6 +224,9 @@ public class SitemapCollector implements RsConstants {
     for (Result<?> result : currentIndex.getResultMap().values()) {
       if (result.hasErrors()) {
         errorResults.add(result);
+        for (Throwable error : result.getErrors()){
+          logger.warn("Result has errors. URI: {}, msg: {}", pathFinder.getCapabilityListUri(), error.getMessage());
+        }
       } else {
         analyze(result);
       }
@@ -380,7 +383,8 @@ public class SitemapCollector implements RsConstants {
       return;
     }
     Optional<ZonedDateTime> maybeListCompletedAt = resourcelist.getMetadata().getCompleted();
-    if( ! maybeListCompletedAt.isPresent() || maybeListCompletedAt.get().isAfter(getAsOfDateTime()) ){
+    ZonedDateTime rlDate = maybeListCompletedAt.orElse(listAt);
+    if( rlDate.isAfter(getAsOfDateTime()) ){
       countResourceLists++;
 
       // walk item list
@@ -418,8 +422,8 @@ public class SitemapCollector implements RsConstants {
     }
 
     Optional<ZonedDateTime> maybeListUntil = changelist.getMetadata().getUntil();
-//    if (listFrom.isAfter(getAsOfDateTime())) {
-    if ( ! maybeListUntil.isPresent() || maybeListUntil.get().isAfter(getAsOfDateTime())) {
+    ZonedDateTime clDate = maybeListUntil.orElse(listFrom);
+    if ( clDate.isAfter(getAsOfDateTime())) {
       countChangeLists++;
 
       // walk item list

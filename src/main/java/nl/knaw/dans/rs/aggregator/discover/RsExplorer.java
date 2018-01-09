@@ -91,6 +91,9 @@ public class RsExplorer extends AbstractUriExplorer {
   public Result<RsRoot> explore(URI uri, ResultIndex index) {
     Result<RsRoot> result = execute(uri, getConverter());
     index.add(result);
+    if (result.hasErrors()) {
+      return result;
+    }
     Capability capability = extractCapability(result);
 
     if (followParentLinks) {
