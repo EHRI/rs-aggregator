@@ -16,3 +16,5 @@ target/
 logs/
 docker/destination/
 docker/cfg/stop
+*.iml
+.idea
