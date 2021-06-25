@@ -1,3 +1,5 @@
+[![Java CI](https://github.com/EHRI/rs-aggregator/actions/workflows/CI.yml/badge.svg)](https://github.com/EHRI/rs-aggregator/actions/workflows/CI.yml)
+
 # rs-aggregator
 Aggregate [ResourceSync](http://www.openarchives.org/rs/1.0.9/resourcesync) Sources
 
